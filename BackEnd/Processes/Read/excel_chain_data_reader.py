@@ -1,6 +1,5 @@
 from datetime import datetime, timedelta
 
-from Utils.get_excel import get_excel
 
 
 def excel_chain_data_reader(wb_to_read, file_path: str):

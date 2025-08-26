@@ -6,6 +6,7 @@ from PIL import Image, ImageTk
 
 
 
+
 # ====================================================================
 #                     PROJECT ROOT CONFIGURATION
 # ====================================================================
@@ -18,6 +19,7 @@ sys.path.append(str(PROJECT_ROOT))
 PROJECT_DIR = Path(__file__).parent.parent.absolute()
 sys.path.append(str(PROJECT_DIR))
 
+from FrontEnd.Views.import_tab import ImportTab
 
 from FrontEnd.Styles.config_styles import configure_styles
 from FrontEnd.Views.loading_view import LoadingView
@@ -120,12 +122,11 @@ class Main_Gui:
         # Create tabs
         self.report_tab = ReportTab(self.notebook)
         self.notebook.add(self.report_tab, text="Report")
-        #self.create_import_tab()
         
-        # Status bar
-        #self.setup_status_bar()
         
-        #select_last_samples()
+        self.import_tab = ImportTab(self.notebook)
+        self.notebook.add(self.import_tab, text="Import")
+            
         
         # SECCION PARA CONTROLAR HILOS DE EJECUCIÓN
         self.db_thread_pool = []

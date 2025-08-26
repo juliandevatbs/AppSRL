@@ -4,14 +4,15 @@ import threading
 from tkinter import messagebox, ttk
 import tkinter as tk
 
-from FrontEnd.Functions.sample_test_wizard import SampleTestsWizard
-from FrontEnd.Functions.sample_wizard import SampleWizard
+
 
 
 PROJECT_ROOT = Path(__file__).parent.parent.parent.absolute()
 sys.path.insert(0, str(PROJECT_ROOT))
 
-
+from FrontEnd.Functions.sample_test_wizard import SampleTestsWizard
+from FrontEnd.Functions.sample_wizard import SampleWizard
+from FrontEnd.Views.create_qc_view import CreateQc
 from BackEnd.Database.Queries.Filters.filter_queries import filter_queries
 from BackEnd.Database.Queries.Select.select_parameters import select_parameters
 from BackEnd.Database.Queries.Select.select_samples import select_samples

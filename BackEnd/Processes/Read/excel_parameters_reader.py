@@ -12,12 +12,13 @@ from datetime import date, datetime
 import sys
 import os
 
+from BackEnd.Processes.Read.excel_header_reader import excel_header_reader
+from BackEnd.Utils.get_wchem_data import get_wchem_data
+from BackEnd.Utils.significant_digits import significant_digits
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from Utils.significant_digits import significant_digits
-from openpyxl import load_workbook
-from Read.excel_header_reader import excel_header_reader
-from Utils.get_wchem_data import get_wchem_data
+
 
 # Agrega el directorio padre al path
 
