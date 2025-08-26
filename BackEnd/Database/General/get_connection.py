@@ -1,85 +1,87 @@
+import os
+from pathlib import Path
+from dotenv import load_dotenv
 import pyodbc
 
 class DatabaseConnection:
     """Manejo de conexión a la base de datos"""
     
-    ACTIVE_CONFIG = 'julian'  
+    def __init__(self):
+        #env_path = Path(__file__).parent.parent.parent / '.env'
+        load_dotenv()
+        self.active_config = os.getenv("DB_ACTIVE_CONFIG", 'julian')
     
-    CONFIGS = {
-        'orlando': {
-            'SERVER': '192.168.0.121',
-            'DATABASE': 'SRLSQL',
-            'USERNAME': 'SRLADMIN',
-            'PASSWORD': '$iZ42cU2$'
-        },
-        'julian': {
-            'SERVER': '(localdb)\\MSSQLLocalDB',
-            'DATABASE': 'local_srl',
-            'USERNAME': 'JULIAN_SRL',
-            'PASSWORD': 'IdeaTab2005@'
-        },
-        'chemilab': {
-            'SERVER': '(localdb)\\SRLlOCAL',
-            'DATABASE': 'LOCALSRL',
-            'USERNAME': 'julianhomezdev',
-            'PASSWORD': 'IdeaTab2005@'
-        }
-    }
-    
-    @staticmethod
-    def get_connection_string():
-        """Obtiene la cadena de conexión usando la configuración activa"""
-        config = DatabaseConnection.CONFIGS.get(DatabaseConnection.ACTIVE_CONFIG)
-        if not config:
-            raise ValueError(f"Configuración '{DatabaseConnection.ACTIVE_CONFIG}' no encontrada")
+    def get_connection_string(self):
+        """Obtiene el string de conexión desde variables de entorno"""
+        config_name = self.active_config.upper()
         
-        return (
-            f"DRIVER={{ODBC Driver 17 for SQL Server}};"
-            f"SERVER={config['SERVER']};"
-            f"DATABASE={config['DATABASE']};"
-            f"UID={config['USERNAME']};"
-            f"PWD={config['PASSWORD']};"
-            f"TrustServerCertificate=yes"
-        )
+        config = {
+            'SERVER': os.getenv(f'DB_{config_name}_SERVER'),
+            'DATABASE': os.getenv(f'DB_{config_name}_DATABASE'),
+            'USERNAME': os.getenv(f'DB_{config_name}_USERNAME'),
+            'PASSWORD': os.getenv(f'DB_{config_name}_PASSWORD')
+        }
+        
+        
+        print(config)
+        
+        
+        
+        
+        # Validar que no falte ninguna
+        missing_vars = [k for k, v in config.items() if not v and k not in ['USERNAME', 'PASSWORD']]
+        if missing_vars:
+            raise ValueError(f"Faltan variables de entorno: {', '.join(missing_vars)}")
+        
+        # Construir string de conexión
+        if config['SERVER'].startswith('(localdb)'):
+            # LocalDB con autenticación Windows
+            return (
+                f"DRIVER={{ODBC Driver 17 for SQL Server}};"
+                f"SERVER={config['SERVER']};"
+                f"DATABASE={config['DATABASE']};"
+                f"Trusted_Connection=yes;"
+            )
+        elif config['USERNAME'] and config['PASSWORD']:
+            # SQL Server remoto con usuario/contraseña
+            return (
+                f"DRIVER={{ODBC Driver 17 for SQL Server}};"
+                f"SERVER={config['SERVER']};"
+                f"DATABASE={config['DATABASE']};"
+                f"UID={config['USERNAME']};"
+                f"PWD={config['PASSWORD']};"
+            )
+        else:
+            # SQL Server con autenticación Windows
+            return (
+                f"DRIVER={{ODBC Driver 17 for SQL Server}};"
+                f"SERVER={config['SERVER']};"
+                f"DATABASE={config['DATABASE']};"
+                f"Trusted_Connection=yes;"
+            )
     
-    @staticmethod
-    def test_connection():
-        """Prueba la conexión usando la configuración activa"""
+    def get_conn(self):
+        """Retorna una conexión activa"""
+        return pyodbc.connect(self.get_connection_string())
+    
+    def test_connection(self):
+        """Prueba la conexión"""
         try:
-            connection_string = DatabaseConnection.get_connection_string()
-            conn = pyodbc.connect(connection_string)
-            
-            cursor = conn.cursor()
-            cursor.execute("SELECT 1")
-            cursor.fetchone()
-            cursor.close()
-            
-            return True, f"Conexión exitosa a {DatabaseConnection.ACTIVE_CONFIG}", conn
-            
+            with self.get_conn() as conn:
+                cursor = conn.cursor()
+                cursor.execute("SELECT 1")
+                cursor.fetchone()
+            return True, f"Conexión exitosa a {self.active_config}"
         except pyodbc.Error as e:
-            return False, f"Error de conexión: {str(e)}", None
+            return False, f"Error de conexión: {e.args}"
         except Exception as e:
-            return False, f"Error inesperado: {str(e)}", None
+            return False, f"Error inesperado: {str(e)}"
     
-    @staticmethod
-    def get_conn():
-        """Retorna una conexión usando la configuración activa"""
+    def get_cursor(self):
+        """Retorna cursor y conexión"""
         try:
-            connection_string = DatabaseConnection.get_connection_string()
-            conn = pyodbc.connect(connection_string)
-            return conn
-        except Exception as e:
-            print(f"Error en get_conn: {str(e)}")
-            return None
-    
-    @staticmethod
-    def get_cursor():
-        """Retorna un cursor usando la configuración activa"""
-        try:
-            conn = DatabaseConnection.get_conn()
-            if conn:
-                return conn.cursor(), conn
-            return None, None
+            conn = self.get_conn()
+            return conn.cursor(), conn
         except Exception as e:
             print(f"Error en get_cursor: {str(e)}")
             return None, None

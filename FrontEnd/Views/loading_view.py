@@ -18,7 +18,7 @@ class LoadingView:
         self.app_instance = app_instance  # Referencia a la clase App
         self.db_connection = None
         self.connection_failed = False
-        self.db_config = list(DatabaseConnection.CONFIGS.keys())[0]  # Valor por defecto
+        self.db_config = list("DB_ACTIVE_CONFIG")[0]  # Valor por defecto
 
         self.style = ttk.Style()
         configure_styles(self.style)
@@ -93,7 +93,8 @@ class LoadingView:
                 time.sleep(0.5)
 
                 self.safe_update_progress(50, "Testing database connection...")
-                success, message, connection = DatabaseConnection.test_connection()
+                db = DatabaseConnection()
+                success, message= db.test_connection()
 
                 if not success:
                     self.safe_update_progress(50, "Database connection failed!")
@@ -101,7 +102,7 @@ class LoadingView:
                     self.root.after(0, lambda: self.show_connection_error(message))
                     return
 
-                self.db_connection = connection
+                self.db_connection = db.get_conn()
                 self.safe_update_progress(70, "Database connection established!")
                 time.sleep(0.6)
 
@@ -197,9 +198,7 @@ class LoadingView:
 
         selected_config = tk.StringVar(value=self.db_config)
 
-        for config_name in DatabaseConnection.CONFIGS.keys():
-            rb = ttk.Radiobutton(frame, text=config_name.title(), value=config_name, variable=selected_config, style='Config.TRadiobutton')
-            rb.pack(anchor=tk.W, pady=4)
+        
 
         btn_frame = ttk.Frame(frame, style='Splash.TFrame')
         btn_frame.pack(pady=(20, 0))
