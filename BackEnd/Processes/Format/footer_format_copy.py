@@ -1,4 +1,6 @@
-from Utils.copy_excel_range import copy_excel_range
+
+from BackEnd.Utils.copy_excel_range import copy_excel_range
+
 
 def footer_format_copy(source_wb, destiny_wb, source_sheet_name, last_row_to):
     footer_range = "A1:AQ4"

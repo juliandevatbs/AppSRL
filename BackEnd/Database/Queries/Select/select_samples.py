@@ -1,4 +1,6 @@
-from Database.General.get_connection import DatabaseConnection
+
+
+from BackEnd.Database.General.get_connection import DatabaseConnection
 
 
 def select_samples(batch_id: int, samples_filtered: list, sample_id, is_view: bool) -> list:

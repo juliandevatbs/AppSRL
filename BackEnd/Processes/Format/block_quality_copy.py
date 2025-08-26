@@ -1,9 +1,8 @@
-from Utils.copy_excel_range import copy_excel_range
-from Format.footer_format_copy import footer_format_copy
-from Format.header_format_copy import header_format_copy
-from Read.excel_header_reader import excel_header_reader
-from Utils.pagination import check_pagination_needed, pagination
-from Write.write_header_data import write_header_data
+
+
+from BackEnd.Utils.copy_excel_range import copy_excel_range
+from BackEnd.Utils.pagination import check_pagination_needed, pagination
+
 
 def block_quality_copy(wb_format, wb_to_print, wb_to_read, last_row: int, controls):
     #print("\n=== DEBUG: STARTING block_quality_copy ===")

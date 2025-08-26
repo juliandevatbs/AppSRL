@@ -4,6 +4,8 @@ from pathlib import Path
 import sys
 
 
+
+
 def get_project_root():
     return Path(__file__).parent.parent.absolute()
 
@@ -12,9 +14,8 @@ sys.path.append(str(PROJECT_ROOT))
 PROJECT_DIR = Path(__file__).parent.parent.absolute()
 sys.path.append(str(PROJECT_DIR))
 
+from BackEnd.Database.General.get_connection import DatabaseConnection
 
-
-from Database.General.get_connection import DatabaseConnection
 
 
 def filter_queries(batch_id: int) -> list:

@@ -3,7 +3,7 @@ import pyodbc
 class DatabaseConnection:
     """Manejo de conexión a la base de datos"""
     
-    ACTIVE_CONFIG = 'chemilab'  
+    ACTIVE_CONFIG = 'julian'  
     
     CONFIGS = {
         'orlando': {
@@ -13,9 +13,9 @@ class DatabaseConnection:
             'PASSWORD': '$iZ42cU2$'
         },
         'julian': {
-            'SERVER': 'localhost',
-            'DATABASE': 'SRL',
-            'USERNAME': 'juliandv',
+            'SERVER': '(localdb)\\MSSQLLocalDB',
+            'DATABASE': 'local_srl',
+            'USERNAME': 'JULIAN_SRL',
             'PASSWORD': 'IdeaTab2005@'
         },
         'chemilab': {
@@ -39,7 +39,6 @@ class DatabaseConnection:
             f"DATABASE={config['DATABASE']};"
             f"UID={config['USERNAME']};"
             f"PWD={config['PASSWORD']};"
-            f"Connection Timeout=10;"
             f"TrustServerCertificate=yes"
         )
     

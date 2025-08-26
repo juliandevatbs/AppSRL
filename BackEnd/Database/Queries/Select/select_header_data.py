@@ -3,6 +3,8 @@
 from pathlib import Path
 import sys
 
+from BackEnd.Database.General.get_connection import DatabaseConnection
+
 
 def get_project_root():
     """Retorna el directorio raíz del proyecto"""
@@ -14,7 +16,6 @@ sys.path.append(str(PROJECT_ROOT))
 PROJECT_DIR = Path(__file__).parent.parent.absolute()
 sys.path.append(str(PROJECT_DIR))
 
-from Database.General.get_connection import DatabaseConnection
 
 def select_header_data (clnt_id: int):
     

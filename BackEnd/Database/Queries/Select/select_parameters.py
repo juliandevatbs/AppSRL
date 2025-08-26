@@ -1,7 +1,8 @@
 import sys
 import os
 
-from Database.General.get_connection import DatabaseConnection
+from BackEnd.Database.General.get_connection import DatabaseConnection
+
 
 def select_parameters(batch_id: int, batches_filtered: list, samples_ids=None) -> list:
     """

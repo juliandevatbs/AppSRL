@@ -1,4 +1,3 @@
-from Utils.merged_cell import merged_cell
 
 
 def write_lab_data(wb, data: list, start_row, client_sample_id):

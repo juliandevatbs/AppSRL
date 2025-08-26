@@ -1,6 +1,4 @@
 
-
-# GLOBAL: Cache para almacenar las filas por página calculadas
 from BackEnd.Processes.Format.footer_for_all import footer_for_all
 from BackEnd.Processes.Format.header_format_copy import header_format_copy
 from BackEnd.Processes.Read.excel_header_reader import excel_header_reader

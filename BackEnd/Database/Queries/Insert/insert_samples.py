@@ -1,5 +1,6 @@
-from Database.General.get_connection import DatabaseConnection
 from datetime import datetime, timedelta
+
+from BackEnd.Database.General.get_connection import DatabaseConnection
 
 def insert_samples(samples: list, columns):
     try:

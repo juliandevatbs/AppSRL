@@ -5,11 +5,32 @@ import platform
 from pathlib import Path
 import sys
 
+from openpyxl import load_workbook
+
+from BackEnd.Database.Queries.Select.select_header_data import select_header_data
 from BackEnd.Database.Queries.Select.select_parameters import select_parameters
+from BackEnd.Database.Queries.Select.select_quality_controls import select_quality
 from BackEnd.Database.Queries.Select.select_samples import select_samples
 from BackEnd.Processes.Format.block_analytical_copy import block_analitic_copy
+from BackEnd.Processes.Format.block_quality_copy import block_quality_copy
+from BackEnd.Processes.Format.footer_format_copy import footer_format_copy
 from BackEnd.Processes.Format.header_analytic_format_copy import header_analitic_format_copy
+from BackEnd.Processes.Format.header_format_copy import header_format_copy
+from BackEnd.Processes.Format.header_quality_format_copy import header_quality_format_copy
+from BackEnd.Processes.Format.header_summary_format_copy import header_summary_format_copy
+from BackEnd.Processes.Format.lab_format_copy import lab_format_copy
+from BackEnd.Processes.Format.table_final_copy import copy_table_final
+from BackEnd.Processes.Read.excel_header_reader import excel_header_reader
 from BackEnd.Processes.Write.write_analytic_data import write_analitic_data
+from BackEnd.Processes.Write.write_lab_data import write_lab_data
+from BackEnd.Processes.Write.write_quality_control import write_quality_control
+from BackEnd.Utils.apply_font_to_worksheet import apply_font_to_worksheet
+from BackEnd.Utils.filter_summary_data import filter_summary_data
+from BackEnd.Utils.group_parameters_by_sample_id import group_parameters_by_sample
+from BackEnd.Utils.pagination import pagination
+from BackEnd.Utils.set_height_for_all_rows import set_height_for_all_rows
+
+
 
 
 
@@ -29,28 +50,6 @@ FILE_PATH = PROJECT_ROOT / "plantilla-reporte-final.xlsx"
 PATH_FILE_SOURCE = PROJECT_ROOT / "SOURCE-FORMAT.xlsx"
 PATH_FILE_WRITE = PROJECT_ROOT / "Reporte.xlsx"
 
-from BackEnd.Database.Queries.Select.select_header_data import select_header_data
-from BackEnd.Database.Queries.Select.select_quality_controls import select_quality
-from Format.table_final_copy import copy_table_final
-
-
-from Utils.pagination import pagination
-
-from openpyxl import load_workbook
-from Format.block_quality_copy import block_quality_copy
-from Format.footer_format_copy import footer_format_copy
-from Format.header_format_copy import header_format_copy
-from Format.header_quality_format_copy import header_quality_format_copy
-from Format.header_summary_format_copy import header_summary_format_copy
-from Format.lab_format_copy import lab_format_copy
-from Read.excel_header_reader import excel_header_reader
-from Utils.apply_font_to_worksheet import apply_font_to_worksheet
-from Utils.filter_summary_data import filter_summary_data
-from Utils.group_parameters_by_sample_id import group_parameters_by_sample
-from Utils.set_height_for_all_rows import set_height_for_all_rows
-from Write.write_header_data import write_header_data
-from Write.write_lab_data import write_lab_data
-from Write.write_quality_control import write_quality_control
 
 
 def open_excel_file(file_path):

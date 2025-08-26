@@ -1,8 +1,8 @@
 import sys
 import os
 
+from BackEnd.Database.General.get_connection import DatabaseConnection
 
-from Database.General.get_connection import DatabaseConnection
 
 def select_quality(batch_id: int, batches_filtered: list = []) -> list:
     """

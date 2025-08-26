@@ -1,5 +1,8 @@
-from Utils.copy_excel_range import copy_excel_range
-from Utils.pagination import check_pagination_needed, pagination
+
+
+from BackEnd.Utils.copy_excel_range import copy_excel_range
+from BackEnd.Utils.pagination import check_pagination_needed, pagination
+
 
 def copy_table_final(source_wb, destiny_wb, source_sheet, last_row, WB_TO_FORMAT, WB_TO_READ):
     """

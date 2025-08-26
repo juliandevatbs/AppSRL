@@ -1,6 +1,8 @@
 import sys
 from pathlib import Path
 
+from BackEnd.Database.General.get_connection import DatabaseConnection
+
 def get_project_root():
     return Path(__file__).parent.parent.absolute()
 
@@ -9,7 +11,6 @@ sys.path.insert(0, str(PROJECT_ROOT))
 PROJECT_DIR = Path(__file__).parent.parent.absolute()
 sys.path.insert(0, str(PROJECT_DIR))
 
-from Database.General.get_connection import DatabaseConnection
 import pyodbc
 
 def insert_sample_tests(sample_tests: list, columns):

@@ -1,4 +1,6 @@
-from Utils.merged_cell import merged_cell
+
+
+from BackEnd.Utils.merged_cell import merged_cell
 
 
 def write_header_data(wb_destiny, header_data, n_row: int):

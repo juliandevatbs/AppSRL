@@ -1,10 +1,7 @@
 import re
-from Utils.pagination import pagination
-from Utils.write_cell import write_cell
-from Format.footer_format_copy import footer_format_copy
-from Format.header_format_copy import header_format_copy
-from Read.excel_header_reader import excel_header_reader
-from Write.write_header_data import write_header_data
+
+from BackEnd.Utils.write_cell import write_cell
+
 
 
 def write_quality_control(controls, last_row: int, ws_to_print, wb_format, wb_to_print, wb_to_read, block_ranges: list):

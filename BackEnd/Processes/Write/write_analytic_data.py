@@ -1,5 +1,8 @@
-from Utils.write_cell import write_cell
-from Utils.pagination import pagination, check_pagination_needed
+
+
+from BackEnd.Utils import write_cell
+from BackEnd.Utils.pagination import check_pagination_needed, pagination
+
 
 def write_analitic_data(wb_to_read, ws_to_write, init_cell, dats, start_row, WB_TO_FORMAT=None, WB_TO_READ=None):
     """
