@@ -4,6 +4,9 @@ import sys
 import os
 
 from BackEnd.Database.Queries.Select.select_samples import select_samples
+from BackEnd.Processes.Format.block_analytical_copy import block_analitic_copy
+from BackEnd.Processes.Format.header_analytic_format_copy import header_analitic_format_copy
+from BackEnd.Processes.Write.write_analytic_data import write_analitic_data
 
 # Configuración de paths
 def get_project_root():
@@ -21,7 +24,6 @@ from BackEnd.Database.Queries.Select.select_parameters import select_parameters
 from Format.block_quality_copy import block_quality_copy
 from Format.header_quality_format_copy import header_quality_format_copy
 from Format.header_summary_format_copy import header_summary_format_copy
-from Write.write_analitic_data import write_analitic_data
 from Utils.filter_summary_data import filter_summary_data
 from Write.write_quality_control import write_quality_control
 from Utils.apply_font_to_worksheet import apply_font_to_worksheet
@@ -30,8 +32,7 @@ from Utils.apply_font_to_worksheet import apply_font_to_worksheet
 from Utils.group_parameters_by_sample_id import group_parameters_by_sample
 
 
-from Format.block_analitic_copy import block_analitic_copy
-from Format.header_analitic_format_copy import header_analitic_format_copy
+
 
 
 from openpyxl import load_workbook

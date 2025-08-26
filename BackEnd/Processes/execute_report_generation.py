@@ -5,9 +5,13 @@ import platform
 from pathlib import Path
 import sys
 
-from BackEnd.Database.Queries.Select.select_header_data import select_header_data
-from BackEnd.Database.Queries.Select.select_quality_controls import select_quality
-from Format.table_final_copy import copy_table_final
+from BackEnd.Database.Queries.Select.select_parameters import select_parameters
+from BackEnd.Database.Queries.Select.select_samples import select_samples
+from BackEnd.Processes.Format.block_analytical_copy import block_analitic_copy
+from BackEnd.Processes.Format.header_analytic_format_copy import header_analitic_format_copy
+from BackEnd.Processes.Write.write_analytic_data import write_analitic_data
+
+
 
 # Configuración de paths
 def get_project_root():
@@ -25,16 +29,16 @@ FILE_PATH = PROJECT_ROOT / "plantilla-reporte-final.xlsx"
 PATH_FILE_SOURCE = PROJECT_ROOT / "SOURCE-FORMAT.xlsx"
 PATH_FILE_WRITE = PROJECT_ROOT / "Reporte.xlsx"
 
+from BackEnd.Database.Queries.Select.select_header_data import select_header_data
+from BackEnd.Database.Queries.Select.select_quality_controls import select_quality
+from Format.table_final_copy import copy_table_final
+
 
 from Utils.pagination import pagination
 
 from openpyxl import load_workbook
-from Db.Select.select_parameters import select_parameters
-from Db.Select.select_samples import select_samples
-from Format.block_analitic_copy import block_analitic_copy
 from Format.block_quality_copy import block_quality_copy
 from Format.footer_format_copy import footer_format_copy
-from Format.header_analitic_format_copy import header_analitic_format_copy
 from Format.header_format_copy import header_format_copy
 from Format.header_quality_format_copy import header_quality_format_copy
 from Format.header_summary_format_copy import header_summary_format_copy
@@ -44,7 +48,6 @@ from Utils.apply_font_to_worksheet import apply_font_to_worksheet
 from Utils.filter_summary_data import filter_summary_data
 from Utils.group_parameters_by_sample_id import group_parameters_by_sample
 from Utils.set_height_for_all_rows import set_height_for_all_rows
-from Write.write_analitic_data import write_analitic_data
 from Write.write_header_data import write_header_data
 from Write.write_lab_data import write_lab_data
 from Write.write_quality_control import write_quality_control
