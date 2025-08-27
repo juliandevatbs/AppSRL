@@ -15,6 +15,9 @@ class ImportTab(ttk.Frame):
     def __init__(self, parent):
         
         super().__init__(parent)
+        self.is_loading = False
+        self.root = parent
+        self.db_thread_pool = []
         
         style = ttk.Style()
         
@@ -22,7 +25,8 @@ class ImportTab(ttk.Frame):
         file_frame = ttk.LabelFrame(self, text="Excel File Import", padding=10)
         file_frame.pack(fill=tk.X, padx=5, pady=5)
         
-        
+        self.status_label = ttk.Label(self, text="Ready")
+        self.status_label.pack(side=tk.BOTTOM, fill = tk.X)
         # Primera fila: Selección de archivo
         ttk.Label(file_frame, text="Select Excel File:").grid(row=0, column=0, padx=5, pady=5, sticky=tk.W)
         self.file_path_entry = ttk.Entry(file_frame, width=50)

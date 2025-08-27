@@ -4,7 +4,7 @@ import tk
 def create_splash_screen(self):
         """Crear la pantalla splash con validaciones mejoradas"""
         self.splash = tk.Toplevel(self.root)
-        self.splash.title("SRLIMS")
+        self.splash.title("SRL")
         self.splash.geometry("450x350")
         self.splash.configure(bg='#2c3e50')
         
