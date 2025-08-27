@@ -9,7 +9,9 @@ class DatabaseConnection:
     def __init__(self):
         #env_path = Path(__file__).parent.parent.parent / '.env'
         load_dotenv()
-        self.active_config = os.getenv("DB_ACTIVE_CONFIG", 'chemilab')
+        # julian connection default
+        # To change the active connection go to the .env file
+        self.active_config = os.getenv("DB_ACTIVE_CONFIG", 'julian')
     
     def get_connection_string(self):
         """Obtiene el string de conexión desde variables de entorno"""
@@ -28,14 +30,11 @@ class DatabaseConnection:
         
         
         
-        # Validar que no falte ninguna
         missing_vars = [k for k, v in config.items() if not v and k not in ['USERNAME', 'PASSWORD']]
         if missing_vars:
             raise ValueError(f"Faltan variables de entorno: {', '.join(missing_vars)}")
         
-        # Construir string de conexión
         if config['SERVER'].startswith('(localdb)'):
-            # LocalDB con autenticación Windows
             return (
                 f"DRIVER={{ODBC Driver 17 for SQL Server}};"
                 f"SERVER={config['SERVER']};"
@@ -43,7 +42,6 @@ class DatabaseConnection:
                 f"Trusted_Connection=yes;"
             )
         elif config['USERNAME'] and config['PASSWORD']:
-            # SQL Server remoto con usuario/contraseña
             return (
                 f"DRIVER={{ODBC Driver 17 for SQL Server}};"
                 f"SERVER={config['SERVER']};"
@@ -52,7 +50,6 @@ class DatabaseConnection:
                 f"PWD={config['PASSWORD']};"
             )
         else:
-            # SQL Server con autenticación Windows
             return (
                 f"DRIVER={{ODBC Driver 17 for SQL Server}};"
                 f"SERVER={config['SERVER']};"

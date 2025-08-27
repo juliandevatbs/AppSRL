@@ -12,6 +12,8 @@ from BackEnd.Processes.Read.excel_parameters_reader import excel_parameters_read
 from BackEnd.Utils.get_plus_code import get_plus_code
 
 class ImportTab(ttk.Frame):
+    
+    
     def __init__(self, parent):
         
         super().__init__(parent)
@@ -143,12 +145,14 @@ class ImportTab(ttk.Frame):
         clear_btn = ttk.Button(btn_frame, text="Clear", style='Danger.TButton',
                             command=self.clear_import)
         clear_btn.pack(side=tk.RIGHT, padx=5)
+        
+        
     def on_workflow_change(self):
         """Manejar cambios en la selección de workflow"""
         # Asegurar que solo uno esté seleccionado a la vez
         if self.chain_of_custody_var.get() and self.subcontracted_var.get():
             # Si ambos están seleccionados, desmarcar el que no fue el último clickeado
-            # Para esto necesitamos rastrear cuál fue el último
+            
             if hasattr(self, '_last_workflow') and self._last_workflow == 'chain_of_custody':
                 self.chain_of_custody_var.set(False)
             else:
@@ -266,21 +270,41 @@ class ImportTab(ttk.Frame):
             wb_to_read = load_workbook(filename=file_path, data_only=True)
             self.root.after(0, lambda: self.update_progress(30, "Reading Excel file..."))
             
-            # Leer datos
-            samples_data = excel_chain_data_reader(wb_to_read, file_path)
-            code = get_plus_code(wb_to_read)
-            samples_tests = excel_parameters_reader(wb_to_read, code)
+            
+            # Verify selected workflow (chain of custody or subcontracted)
+            workflow = self.get_selected_workflow()
+            
+            if workflow == 'Chain of Custody':
+                
+                # Read excel chain of custody
+                samples_data = excel_chain_data_reader(wb_to_read, file_path)
+                code = get_plus_code(wb_to_read)
+                samples_tests = excel_parameters_reader(wb_to_read, code)
+                
+                
+            
+            elif workflow == 'Subcontracted':
+                
+                # Subcontracted workflow
+                print()
+                
+                
+            else:
+                
+                raise Exception("Unknow workflow detected") 
+            
             
             self.root.after(0, lambda: self.update_progress(60, "Processing data..."))
-            
+                
             # Actualizar GUI en hilo principal
             self.root.after(0, self.update_import_tables, samples_data, samples_tests)
-            
+                
             # Insertar en BD
             self.insert_data_to_db(samples_data, samples_tests)
-            
+                
             self.root.after(0, lambda: self.update_progress(100, "Import completed successfully!"))
             self.root.after(0, lambda: messagebox.showinfo("Success", "Data import completed successfully!"))
+            
             
         except Exception as e:
             error_msg = f"Import error: {str(e)}"
