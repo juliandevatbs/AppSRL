@@ -1,14 +1,14 @@
 from openpyxl import load_workbook
 
-from BackEnd.Processes.Read import subcontracted_reader
+from BackEnd.Processes.Read.subcontracted_reader import subcontracted_reader
 
 
-def process_subcontracted(url_file: str) -> list:
+def process_subcontracted(url_file: str, wb) -> list:
     
     
     #Load the wb
     try:
-        wb = load_workbook(filename=url_file)
+        
         
         # Get the first sheet
         ws_to_read = wb.worksheets[0]

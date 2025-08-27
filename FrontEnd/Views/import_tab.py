@@ -9,6 +9,7 @@ from BackEnd.Database.Queries.Insert.insert_sample_tests import insert_sample_te
 from BackEnd.Database.Queries.Insert.insert_samples import insert_samples
 from BackEnd.Processes.Read.excel_chain_data_reader import excel_chain_data_reader
 from BackEnd.Processes.Read.excel_parameters_reader import excel_parameters_reader
+from BackEnd.Processes.SubContracted.process_subcontracted import process_subcontracted
 from BackEnd.Utils.get_plus_code import get_plus_code
 
 class ImportTab(ttk.Frame):
@@ -26,6 +27,9 @@ class ImportTab(ttk.Frame):
         # Frame superior para selección de archivo
         file_frame = ttk.LabelFrame(self, text="Excel File Import", padding=10)
         file_frame.pack(fill=tk.X, padx=5, pady=5)
+        
+        
+      
         
         self.status_label = ttk.Label(self, text="Ready")
         self.status_label.pack(side=tk.BOTTOM, fill = tk.X)
@@ -205,18 +209,9 @@ class ImportTab(ttk.Frame):
             self.file_path_entry.delete(0, tk.END)
             self.file_path_entry.insert(0, file_path)
             self.update_status(f"Selected file: {os.path.basename(file_path)}")
-            self.preview_file(file_path)
+            
     
-    def preview_file(self, file_path):
-        """Preview the first few lines of the selected file"""
-        try:
-            # This is a placeholder - you would implement actual Excel preview
-            self.preview_text.config(state=tk.NORMAL)
-            self.preview_text.delete(1.0, tk.END)
-            self.preview_text.insert(tk.END, f"Preview of: {file_path}\n\n")
-            self.preview_text.config(state=tk.DISABLED)
-        except Exception as e:
-            self.update_status(f"Preview error: {str(e)}", error=True)
+ 
     
     
     
@@ -270,6 +265,8 @@ class ImportTab(ttk.Frame):
             wb_to_read = load_workbook(filename=file_path, data_only=True)
             self.root.after(0, lambda: self.update_progress(30, "Reading Excel file..."))
             
+            samples_data, samples_tests, registers_subcontracted = None, None, None
+            
             
             # Verify selected workflow (chain of custody or subcontracted)
             workflow = self.get_selected_workflow()
@@ -286,8 +283,12 @@ class ImportTab(ttk.Frame):
             elif workflow == 'Subcontracted':
                 
                 # Subcontracted workflow
-                print()
+                print(process_subcontracted)
+                registers_subcontracted = process_subcontracted(file_path, wb_to_read)
                 
+                print("Registers to subcontracted")
+                print()
+                print(registers_subcontracted)
                 
             else:
                 
@@ -297,10 +298,10 @@ class ImportTab(ttk.Frame):
             self.root.after(0, lambda: self.update_progress(60, "Processing data..."))
                 
             # Actualizar GUI en hilo principal
-            self.root.after(0, self.update_import_tables, samples_data, samples_tests)
+            #self.root.after(0, self.update_import_tables, samples_data, samples_tests)
                 
             # Insertar en BD
-            self.insert_data_to_db(samples_data, samples_tests)
+            #self.insert_data_to_db(samples_data, samples_tests)
                 
             self.root.after(0, lambda: self.update_progress(100, "Import completed successfully!"))
             self.root.after(0, lambda: messagebox.showinfo("Success", "Data import completed successfully!"))
@@ -368,9 +369,7 @@ class ImportTab(ttk.Frame):
     def clear_import(self):
         """Clear import fields"""
         self.file_path_entry.delete(0, tk.END)
-        self.preview_text.config(state=tk.NORMAL)
-        self.preview_text.delete(1.0, tk.END)
-        self.preview_text.config(state=tk.DISABLED)
+        
         self.progress_bar['value'] = 0
         
         # Limpiar también las tablas de importación

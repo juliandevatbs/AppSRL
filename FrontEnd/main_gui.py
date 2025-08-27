@@ -20,7 +20,7 @@ PROJECT_DIR = Path(__file__).parent.parent.absolute()
 sys.path.append(str(PROJECT_DIR))
 
 from FrontEnd.Views.import_tab import ImportTab
-
+ 
 from FrontEnd.Styles.config_styles import configure_styles
 from FrontEnd.Views.loading_view import LoadingView
 from FrontEnd.Views.report_tab import ReportTab
