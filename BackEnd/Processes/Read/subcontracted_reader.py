@@ -23,8 +23,6 @@ def subcontracted_reader(ws_to_read) -> list:
             register.append(cell_to_read)
         
         registers_to_create.append(register)    
-    
-    
-        
+     
     
     return registers_to_create
