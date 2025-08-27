@@ -9,7 +9,9 @@ def insert_samples(samples: list, columns):
             return False
     
         # Obtener conexión activa
-        cursor = DatabaseConnection.get_conn()
+        instance_db = DatabaseConnection()
+        conn = DatabaseConnection.get_conn(instance_db)
+        cursor = conn.cursor()
         if not cursor:
             print("Error: Connection could not be established")
             return False

@@ -18,7 +18,8 @@ def select_quality(batch_id: int, batches_filtered: list = []) -> list:
     parameters_data = []
     
     try:
-        conn = DatabaseConnection.get_conn()
+        instance_db = DatabaseConnection()
+        conn = DatabaseConnection.get_conn(instance_db)
         cursor = conn.cursor()
         
         # Construir la consulta base (SIN el WHERE final)
@@ -76,7 +77,9 @@ def test_query_manually(batch_id):
     Función para probar la consulta manualmente y ver qué está pasando
     """
     try:
-        cursor = DatabaseConnection.get_conn()
+        instance_db = DatabaseConnection()
+        conn = DatabaseConnection.get_conn(instance_db)
+        cursor = conn.cursor()
         
         # Probar primero si hay registros con ese batch_id
         test_query = "SELECT COUNT(*) FROM Sample_Tests WHERE LabReportingBatchID = ?"

@@ -22,8 +22,9 @@ def select_header_data (clnt_id: int):
     header_data = []
     try:
         
-        
-        cursor = DatabaseConnection.get_conn()
+        instance_db = DatabaseConnection()
+        conn = DatabaseConnection.get_conn(instance_db)
+        cursor = conn.cursor()
         
         
         query = """

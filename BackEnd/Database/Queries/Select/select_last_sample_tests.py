@@ -19,7 +19,9 @@ def select_last_samples():
     
     try:
         
-        cursor = DatabaseConnection.get_conn()
+        instance_db = DatabaseConnection()
+        conn = DatabaseConnection.get_conn(instance_db)
+        cursor = conn.cursor()
         
         if cursor:
             

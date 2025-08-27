@@ -42,7 +42,8 @@ def get_all_sample_tests_data(batch_id=None):
     }
     
     try:
-        connection = DatabaseConnection.get_conn()
+        instance_db = DatabaseConnection()
+        connection = DatabaseConnection.get_conn(instance_db)
         cursor = connection.cursor()
         
         # 1. Obtener último Sample Test ID

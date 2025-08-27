@@ -31,7 +31,10 @@ def insert_sample_tests(sample_tests: list, columns):
 
     try:
         # Obtener conexión activa
-        cursor = DatabaseConnection.get_conn()
+        instance_db = DatabaseConnection()
+        conn = DatabaseConnection.get_conn(instance_db)
+        cursor = conn.cursor()
+        
         if not cursor:
             print("Error: No se pudo establecer conexión")
             return False

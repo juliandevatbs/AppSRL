@@ -9,7 +9,7 @@ class DatabaseConnection:
     def __init__(self):
         #env_path = Path(__file__).parent.parent.parent / '.env'
         load_dotenv()
-        self.active_config = os.getenv("DB_ACTIVE_CONFIG", 'julian')
+        self.active_config = os.getenv("DB_ACTIVE_CONFIG", 'chemilab')
     
     def get_connection_string(self):
         """Obtiene el string de conexión desde variables de entorno"""

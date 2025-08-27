@@ -35,7 +35,8 @@ def update_assign_data(field_name, lab_sample_ids: list, new_data):
     cursor = None
     
     try:
-        conn = DatabaseConnection.get_conn()
+        instance_db = DatabaseConnection()
+        conn = DatabaseConnection.get_conn(instance_db)
         cursor = conn.cursor()
         
         # Construir la consulta con el nombre del campo directamente
@@ -124,7 +125,8 @@ def update_assign_data_with_validation(field_name, lab_sample_ids: list, new_dat
     cursor = None
     
     try:
-        conn = DatabaseConnection.get_conn()
+        instance_db = DatabaseConnection()
+        conn = DatabaseConnection.get_conn(instance_db)
         cursor = conn.cursor()
         
         # Primero verificar que los LabSampleIDs existen

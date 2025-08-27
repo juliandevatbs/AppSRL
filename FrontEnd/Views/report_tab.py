@@ -27,6 +27,17 @@ class ReportTab(ttk.Frame):
         super().__init__(parent)
         
         style = ttk.Style()
+        # init is loading on false
+        self.is_loading = False
+        self.root = parent
+        self.main_frame = self
+        # List for threads for bd
+        self.db_thread_pool = []
+        self.current_batch_id = None
+        self.current_lab_sample_id = None
+        
+        self.status_label = ttk.Label(self, text="Ready")
+        self.status_label.pack(side=tk.BOTTOM, fill = tk.X)
         
         style.configure("Excel.Treeview",
                 borderwidth=2,
@@ -252,6 +263,15 @@ class ReportTab(ttk.Frame):
         sample_id_text = self.sample_id_entry.get().strip()
         if not sample_id_text:
             self.reload_batch_data()
+    
+    def update_status(self, message, error=False):
+        """Update the status bar message"""
+        self.status_label.config(text=message)
+        if error:
+            self.status_label.config(foreground='#ff6b6b')
+            self.root.after(5000, lambda: self.status_label.config(foreground='white'))
+        else:
+            self.status_label.config(foreground='white')
            
 
     def filter_by_sample_id(self, sample_id):
@@ -490,10 +510,16 @@ class ReportTab(ttk.Frame):
             
 
             sample_data = select_samples(sample_id, [], lab_sample_id, True)
+            print(f"sample data loaded {sample_data}")
+            
             lab_sample_id_per_batch = filter_queries(sample_id)
             
             
             parameters_data = select_parameters(sample_id, [], lab_sample_id)
+            
+            if not sample_data and not parameters_data:
+                self.root.after(0, self.handle_data_loading_error, "No data found for the id")
+                return
             
             self.root.after(0, self.update_tables_with_data, sample_data, parameters_data)
             self.root.after(0, self.update_filters_combobox, lab_sample_id_per_batch)

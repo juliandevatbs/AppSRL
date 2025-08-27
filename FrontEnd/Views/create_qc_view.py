@@ -174,7 +174,8 @@ class CreateQc:
         cursor = None
         
         try:
-            conn = DatabaseConnection.get_conn()
+            instance_db = DatabaseConnection()
+            conn = DatabaseConnection.get_conn(instance_db)
             cursor = conn.cursor()
             
             base_query = """

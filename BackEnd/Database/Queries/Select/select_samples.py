@@ -21,8 +21,15 @@ def select_samples(batch_id: int, samples_filtered: list, sample_id, is_view: bo
     cursor = None
     
     try:
+        
+        instance_db = DatabaseConnection()
         # Obtener conexión y crear cursor 
-        connection = DatabaseConnection.get_conn()
+        connection = DatabaseConnection.get_conn(instance_db)
+        
+        if connection is None:
+            print("Error: No database connection"
+                  )
+            return results_list
         cursor = connection.cursor()
         
         # Construir la consulta base con subconsulta para concatenar análisis
@@ -112,7 +119,9 @@ def get_analysis_methods_for_batch(batch_id: int) -> str:
     cursor = None
     
     try:
-        conn = DatabaseConnection.get_conn()
+        instance_db = DatabaseConnection()
+        
+        conn = DatabaseConnection.get_conn(instance_db)
         cursor = conn.cursor()
         
         query = """

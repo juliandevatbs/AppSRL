@@ -19,7 +19,8 @@ def select_parameters(batch_id: int, batches_filtered: list, samples_ids=None) -
     parameters_data = []
     
     try: 
-        connection = DatabaseConnection.get_conn()
+        instance_db = DatabaseConnection()
+        connection = DatabaseConnection.get_conn(instance_db)
         cursor = connection.cursor()
         
         # Construir la consulta base

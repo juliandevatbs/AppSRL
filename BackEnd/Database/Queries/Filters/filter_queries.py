@@ -23,9 +23,9 @@ def filter_queries(batch_id: int) -> list:
    
     try:
 
-        db = DatabaseConnection()
-        conn = db.get_conn()
-        cursor = db.cursor()
+        instance_db = DatabaseConnection()
+        conn = DatabaseConnection.get_conn(instance_db)
+        cursor = conn.cursor()
         
         base_query = """
             SELECT DISTINCT LabSampleID FROM Samples WHERE LabReportingBatchID = ?

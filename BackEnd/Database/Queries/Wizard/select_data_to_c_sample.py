@@ -43,7 +43,8 @@ def get_all_sample_data():
     }
     
     try:
-        connection = DatabaseConnection.get_conn()
+        instance_db = DatabaseConnection()
+        connection = DatabaseConnection.get_conn(instance_db)
         cursor = connection.cursor()
         # 1. Obtener último Batch ID
         query_last_batch = """

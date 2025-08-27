@@ -18,8 +18,9 @@ from BackEnd.Database.General.get_connection import DatabaseConnection
 def select_last_samples():
     
     try:
-        
-        cursor = DatabaseConnection.get_conn()
+        instance_db = DatabaseConnection()
+        connection = DatabaseConnection.get_conn(instance_db)
+        cursor = connection.cursor()
         
         if cursor:
             
