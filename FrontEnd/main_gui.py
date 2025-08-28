@@ -20,7 +20,7 @@ PROJECT_DIR = Path(__file__).parent.parent.absolute()
 sys.path.append(str(PROJECT_DIR))
 
 from FrontEnd.Views.import_tab import ImportTab
-
+ 
 from FrontEnd.Styles.config_styles import configure_styles
 from FrontEnd.Views.loading_view import LoadingView
 from FrontEnd.Views.report_tab import ReportTab
@@ -42,7 +42,7 @@ class Main_Gui:
         self.dark_color = '#1a202c'
         # Estilo ttk
         self.style = ttk.Style()
-        configure_styles(self.style)  # Llamar la función importada directamente
+        configure_styles(self.style)  
 
         # Visibles para almacenar el batch ID actual
         self.current_batch_id = None
@@ -96,7 +96,6 @@ class Main_Gui:
             logo_label = ttk.Label(header_frame, image=self.logo_image, background=self.dark_color)
             logo_label.pack(side=tk.LEFT, padx=(15, 10))
         
-        # Application title with better typography
         title_label = ttk.Label(header_frame, 
                               text="App", 
                               style='Header.TLabel')
@@ -127,11 +126,11 @@ class Main_Gui:
         self.import_tab = ImportTab(self.notebook)
         self.notebook.add(self.import_tab, text="Import")
             
+
         
         # SECCION PARA CONTROLAR HILOS DE EJECUCIÓN
         self.db_thread_pool = []
         self.is_loading = False
-
     
 
 
