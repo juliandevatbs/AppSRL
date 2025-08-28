@@ -25,11 +25,6 @@ class DatabaseConnection:
         }
         
         
-        print(config)
-        
-        
-        
-        
         missing_vars = [k for k, v in config.items() if not v and k not in ['USERNAME', 'PASSWORD']]
         if missing_vars:
             raise ValueError(f"Faltan variables de entorno: {', '.join(missing_vars)}")

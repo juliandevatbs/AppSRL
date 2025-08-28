@@ -28,11 +28,41 @@ class ImportTab(ttk.Frame):
         file_frame = ttk.LabelFrame(self, text="Excel File Import", padding=10)
         file_frame.pack(fill=tk.X, padx=5, pady=5)
         
+        # Var for checkboxes
+        self.chain_of_custody_var = tk.BooleanVar(value=True)
+        self.subcontracted_var = tk.BooleanVar()
         
-      
+        # Init workflow chain of custody by default
+        self._last_workflow = "chain_of_custody"
+        
+        
+        # Columns depending the selected workflow
+        self.WORKFLOW_CONFIG =  {
+            
+            "chain_of_custody": {
+                "samples" : ("ItemID", "LabReportingBatchID", "LabSampleId", "ClientSampleID", 
+                    "LabAnalysisRefMethodID", "MatrixID", "DateCollected", "Sampler"),
+                
+                "tests": ("ClientSampleID", "LabAnalysisRefMethodID", "LabSampleID", "AnalyteName", 
+                  "Result", "ResultUnits", "DetectionLimit", "Dilution", "ReportingLimit", 
+                  "ProjectName", "DateCollected", "MatrixID", "LabReportingBatchID", 
+                  "Notes","AnalyteType", "Sampler", "Analyst")
+            },
+            
+            "subcontracted": {
+                "samples" : ("ItemID", "LabReportingBatchID", "LabSampleId", "ClientSampleID", 
+                    "LabAnalysisRefMethodID", "MatrixID", "DateCollected", "Sampler"),
+                "tests": ("ClientSampleID", "LabAnalysisRefMethodID", "LabSampleID", "LabID", "ClientAnalyteID", "AnalyteName", "Result", "ResultUnits", "LabQualifiers", "ReportingLimit", "AnalyteType", "Dilution", "PercentMoisture", "PercentRecovery", "RelativePercentDifference", "ReportingLimit", "DateCollected", "MatrixID", "QCType", "Notes", "PreparationType", "MethodBatchID")
+            }
+        }
+        
+        
+        
         
         self.status_label = ttk.Label(self, text="Ready")
         self.status_label.pack(side=tk.BOTTOM, fill = tk.X)
+        
+        
         # Primera fila: Selección de archivo
         ttk.Label(file_frame, text="Select Excel File:").grid(row=0, column=0, padx=5, pady=5, sticky=tk.W)
         self.file_path_entry = ttk.Entry(file_frame, width=50)
@@ -51,10 +81,6 @@ class ImportTab(ttk.Frame):
         # Frame para los checkboxes
         workflow_frame = ttk.Frame(file_frame)
         workflow_frame.grid(row=1, column=1, padx=5, pady=5, sticky=tk.W)
-        
-        # Variables para los checkboxes
-        self.chain_of_custody_var = tk.BooleanVar(value=True)  # Por defecto seleccionado
-        self.subcontracted_var = tk.BooleanVar()
         
         # Checkboxes
         chain_of_custody_cb = ttk.Checkbutton(workflow_frame, text="Chain of Custody", 
@@ -79,13 +105,11 @@ class ImportTab(ttk.Frame):
         import_table1_container = ttk.Frame(table1_frame)
         import_table1_container.pack(fill=tk.BOTH, expand=True)
         
-        columns1 = ("ItemID", "LabReportingBatchID", "LabSampleId", "ClientSampleID", "LabAnalysisRefMethodID", "MatrixID" ,
-                "DateCollected", "Sampler")
-        self.import_table1 = ttk.Treeview(import_table1_container, columns=columns1, show='headings')
+       
+                
+        self.import_table1 = ttk.Treeview(import_table1_container,show='headings')
         
-        for col in columns1:
-            self.import_table1.heading(col, text=col)
-            self.import_table1.column(col, width=150, anchor=tk.W)
+        
         
         # SCROLLBARS PARA TABLA 1 DE IMPORTACIÓN
         import_scroll1_v = ttk.Scrollbar(import_table1_container, orient=tk.VERTICAL, command=self.import_table1.yview)
@@ -109,14 +133,9 @@ class ImportTab(ttk.Frame):
         import_table2_container = ttk.Frame(table2_frame)
         import_table2_container.pack(fill=tk.BOTH, expand=True)
         
-        columns2 = ("ClientSampleID", "LabAnalysisRefMethodID", "LabSampleID", "AnalyteName", 
-                "Result", "ResultUnits", "DetectionLimit", "Dilution", "ReportingLimit", 
-                "ProjectName", "DateCollected", "MatrixID", "LabReportingBatchID", "Notes","AnalyteType", "Sampler", "Analyst")
-        self.import_table2 = ttk.Treeview(import_table2_container, columns=columns2, show='headings')
         
-        for col in columns2:
-            self.import_table2.heading(col, text=col)
-            self.import_table2.column(col, width=120, anchor=tk.W)
+        self.import_table2 = ttk.Treeview(import_table2_container, show='headings')
+        
         
         # SCROLLBARS PARA TABLA 2 DE IMPORTACIÓN
         import_scroll2_v = ttk.Scrollbar(import_table2_container, orient=tk.VERTICAL, command=self.import_table2.yview)
@@ -150,7 +169,15 @@ class ImportTab(ttk.Frame):
                             command=self.clear_import)
         clear_btn.pack(side=tk.RIGHT, padx=5)
         
+        #Init configure for all tables
         
+        self.setup_import_tables("chain_of_custody")
+        
+    
+        
+        
+        
+    # Method to control the worflow change
     def on_workflow_change(self):
         """Manejar cambios en la selección de workflow"""
         # Asegurar que solo uno esté seleccionado a la vez
@@ -172,15 +199,48 @@ class ImportTab(ttk.Frame):
         if not self.chain_of_custody_var.get() and not self.subcontracted_var.get():
             self.chain_of_custody_var.set(True)
             self._last_workflow = 'chain_of_custody'
-
+            
+        workflow = self.get_selected_workflow()
+        self.setup_import_tables(workflow)
+        
+    # This method configures the tables depending the workflow selected       
+    def setup_import_tables(self, workflow):
+        
+        
+        # First delete the last table content
+        for table in [self.import_table1, self.import_table2]:
+            table.delete(*table.get_children())
+            for col in table["columns"]:
+                table.heading(col, text="")
+                table.column(col, width=0)
+                
+        # Get the workflow columns
+        columns1 = self.workflow_columns[workflow]["samples"]
+        columns2 = self.workflow_columns[workflow]["tests"]
+        
+        # Reconfigure table 1
+        self.import_table1["columns"] = columns1
+        for col in columns1:
+            self.import_table1.heading(col, text=col)
+            self.import_table1.column(col, anchor= tk.W)
+            
+        # Reconfigure table 2
+        self.import_table2["columns"] = columns2
+        for col in columns2:
+            self.import_table2.heading(col, text=col)
+            self.import_table2.column(col, anchor= tk.W)
+                
+    #  Gets the selected workflow
     def get_selected_workflow(self):
         """Obtener el workflow seleccionado"""
         if self.chain_of_custody_var.get():
-            return "Chain of Custody"
+            return "chain_of_custody"
         elif self.subcontracted_var.get():
-            return "Subcontracted"
+            return "subcontracted"
         else:
-            return "Chain of Custody"     
+            return "chain_of_custody"  
+        
+    # Configure the status bar        
     def setup_status_bar(self):
         """Setup the status bar at the bottom with modern styling"""
         status_frame = ttk.Frame(self.main_frame, style='Status.TFrame')
@@ -197,7 +257,9 @@ class ImportTab(ttk.Frame):
                                 text="v1.0.1 | © 2025 App", 
                                 style='Status.TLabel')
         version_label.pack(side=tk.RIGHT, padx=10)
+        
     
+    # This methods browse and open the file to get the data
     def browse_file(self):
         """Open file dialog to select Excel file"""
         file_path = filedialog.askopenfilename(
@@ -211,10 +273,7 @@ class ImportTab(ttk.Frame):
             self.update_status(f"Selected file: {os.path.basename(file_path)}")
             
     
- 
-    
-    
-    
+    # Call the code to read the uploaded excel
     def import_data(self):
         """Process the import of data from Excel"""
         try:
@@ -240,22 +299,16 @@ class ImportTab(ttk.Frame):
             thread.start()
             
                 
-            """sample_columns = ["itemID", "LabReportingBatchID", "LabSampleID", "DateCollected","ClientSampleID", "CollectMethod", "MatrixID", "Sampler", "TotalContainers"]
-            columns = ["ClientSampleID", "LabAnalysisRefMethodID", "LabSampleID", "AnalyteName", "Result", "ResultUnits", "DetectionLimit", "Dilution", "ReportingLimit", "ProjectName", "DateCollected", "MatrixID", "QCType", "LabReportingBatchID", "Notes"] 
-            file_path = "C:/Users/Duban Serrano/Downloads/FINAL-REPORT-SRLIMS (1)/FINAL-REPORT-SRLIMS/plantilla-reporte-final.xlsx"
-            wb_to_read = load_workbook(filename=file_path, data_only=True)
-            results = excel_parameters_reader(wb_to_read, '2503014')
-            insert_sample_tests(results, columns)
-            insert_samples(samples_data, sample_columns)"""
-            
             
             
         except Exception as e:
             error_msg = f"Import setup error: {str(e)}"
             self.update_status(error_msg, error=True)
             messagebox.showerror("Import Error", error_msg)
+            
+            
      
-     
+    # Call the import functions  
     def execute_import(self, file_path):
         
         try:
@@ -271,7 +324,7 @@ class ImportTab(ttk.Frame):
             # Verify selected workflow (chain of custody or subcontracted)
             workflow = self.get_selected_workflow()
             
-            if workflow == 'Chain of Custody':
+            if workflow == 'chain_of_custody':
                 
                 # Read excel chain of custody
                 samples_data = excel_chain_data_reader(wb_to_read, file_path)
@@ -280,7 +333,7 @@ class ImportTab(ttk.Frame):
                 
                 
             
-            elif workflow == 'Subcontracted':
+            elif workflow == 'subcontracted':
                 
                 # Subcontracted workflow
                 print(process_subcontracted)
@@ -312,6 +365,7 @@ class ImportTab(ttk.Frame):
             self.root.after(0, lambda: self.handle_import_error(error_msg))
         finally:
             self.is_loading = False
+         
            
     def update_progress(self, value, message):
         self.progress_bar['value'] = value
@@ -338,6 +392,7 @@ class ImportTab(ttk.Frame):
 
     def insert_data_to_db(self, samples_data, samples_tests):
         try:
+            
             sample_columns = ["itemID", "LabReportingBatchID", "LabSampleID", "DateCollected",
                             "ClientSampleID", "CollectMethod", "MatrixID", "Sampler", "TotalContainers"]
             test_columns = ["ClientSampleID", "LabAnalysisRefMethodID", "LabSampleID", "AnalyteName", "Result", "ResultUnits", "DetectionLimit", "Dilution", "ReportingLimit", "ProjectName", "DateCollected", "MatrixID", "LabReportingBatchID", "Notes", "QCType"]
