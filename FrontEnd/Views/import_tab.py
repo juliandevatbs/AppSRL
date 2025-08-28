@@ -52,7 +52,12 @@ class ImportTab(ttk.Frame):
             "subcontracted": {
                 "samples" : ("ItemID", "LabReportingBatchID", "LabSampleId", "ClientSampleID", 
                     "LabAnalysisRefMethodID", "MatrixID", "DateCollected", "Sampler"),
-                "tests": ("ClientSampleID", "LabAnalysisRefMethodID", "LabSampleID", "LabID", "ClientAnalyteID", "AnalyteName", "Result", "ResultUnits", "LabQualifiers", "ReportingLimit", "AnalyteType", "Dilution", "PercentMoisture", "PercentRecovery", "RelativePercentDifference", "ReportingLimit", "DateCollected", "MatrixID", "QCType", "Notes", "PreparationType", "MethodBatchID")
+                "tests": ("ClientSampleID", "LabAnalysisRefMethodID", "LabSampleID", "LabID", 
+                          "ClientAnalyteID", "AnalyteName", "Result", "", "ResultUnits", 
+                          "LabQualifiers", "ReportingLimit", "AnalyteType", "Dilution", 
+                          "PercentMoisture", "PercentRecovery", "RelativePercentDifference", 
+                          "ReportingLimit", "DateCollected", "MatrixID", "QCType", "Notes", 
+                          "PreparationType", "MethodBatchID")
             }
         }
         
@@ -215,8 +220,8 @@ class ImportTab(ttk.Frame):
                 table.column(col, width=0)
                 
         # Get the workflow columns
-        columns1 = self.workflow_columns[workflow]["samples"]
-        columns2 = self.workflow_columns[workflow]["tests"]
+        columns1 = self.WORKFLOW_CONFIG[workflow]["samples"]
+        columns2 = self.WORKFLOW_CONFIG[workflow]["tests"]
         
         # Reconfigure table 1
         self.import_table1["columns"] = columns1
@@ -342,6 +347,8 @@ class ImportTab(ttk.Frame):
                 print("Registers to subcontracted")
                 print()
                 print(registers_subcontracted)
+                
+                self.root.after(0, self.update_import_tables, [], registers_subcontracted)
                 
             else:
                 
