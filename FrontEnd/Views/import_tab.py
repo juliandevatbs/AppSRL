@@ -7,6 +7,7 @@ from openpyxl import load_workbook
 
 from BackEnd.Database.Queries.Insert.insert_sample_tests import insert_sample_tests
 from BackEnd.Database.Queries.Insert.insert_samples import insert_samples
+from BackEnd.Processes.DataTypes.process_datetime import process_datetime
 from BackEnd.Processes.Read.excel_chain_data_reader import excel_chain_data_reader
 from BackEnd.Processes.Read.excel_parameters_reader import excel_parameters_reader
 from BackEnd.Processes.SubContracted.process_subcontracted import process_subcontracted
@@ -52,11 +53,14 @@ class ImportTab(ttk.Frame):
             "subcontracted": {
                 "samples" : ("ItemID", "LabReportingBatchID", "LabSampleId", "ClientSampleID", 
                     "LabAnalysisRefMethodID", "MatrixID", "DateCollected", "Sampler"),
+                
+                
+                
                 "tests": ("ClientSampleID", "LabAnalysisRefMethodID", "LabSampleID", "LabID", 
-                          "ClientAnalyteID", "AnalyteName", "Result", "", "ResultUnits", 
+                          "ClientAnalyteID", "AnalyteName", "Result", "ResultUnits", 
                           "LabQualifiers", "ReportingLimit", "AnalyteType", "Dilution", 
                           "PercentMoisture", "PercentRecovery", "RelativePercentDifference", 
-                          "ReportingLimit", "DateCollected", "MatrixID", "QCType", "Notes", 
+                      "ReportingQ", "DateCollected", "MatrixID", "QCType", "Notes", 
                           "PreparationType", "MethodBatchID")
             }
         }
@@ -232,6 +236,7 @@ class ImportTab(ttk.Frame):
         # Reconfigure table 2
         self.import_table2["columns"] = columns2
         for col in columns2:
+        
             self.import_table2.heading(col, text=col)
             self.import_table2.column(col, anchor= tk.W)
                 
@@ -391,10 +396,11 @@ class ImportTab(ttk.Frame):
         for sample in samples_data:
             current_sample = sample[0]
             if len(current_sample) > 3:
-                self.import_table1.insert('', tk.END, values=current_sample[:10])
+                self.import_table1.insert('', tk.END, values=current_sample)
         
         for test in samples_tests:
-            self.import_table2.insert('', tk.END, values=test[:15])
+            data_to_print = process_datetime(test)
+            self.import_table2.insert('', tk.END, values=data_to_print)
 
 
     def insert_data_to_db(self, samples_data, samples_tests):
