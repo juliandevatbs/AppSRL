@@ -12,7 +12,7 @@ def subcontracted_reader(ws_to_read) -> list:
     max_row = ws_to_read.max_row
     max_col = ws_to_read.max_column
     
-    for row in range(1, max_row + 1):
+    for row in range(2, max_row + 1):
     
         register = []
         
