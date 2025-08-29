@@ -10,6 +10,7 @@ from BackEnd.Database.Queries.Insert.insert_samples import insert_samples
 from BackEnd.Processes.DataTypes.process_datetime import process_datetime
 from BackEnd.Processes.Read.excel_chain_data_reader import excel_chain_data_reader
 from BackEnd.Processes.Read.excel_parameters_reader import excel_parameters_reader
+from BackEnd.Processes.SubContracted.generate_samples_for_st import generate_samples_for_st
 from BackEnd.Processes.SubContracted.process_subcontracted import process_subcontracted
 from BackEnd.Utils.get_plus_code import get_plus_code
 
@@ -348,6 +349,8 @@ class ImportTab(ttk.Frame):
                 # Subcontracted workflow
                 print(process_subcontracted)
                 registers_subcontracted = process_subcontracted(file_path, wb_to_read)
+                
+                generate_samples_for_st(registers_subcontracted)
                 
                 print("Registers to subcontracted")
                 print()
