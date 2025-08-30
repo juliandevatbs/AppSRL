@@ -396,7 +396,7 @@ class ImportTab(ttk.Frame):
         # Insertar datos
         for sample in samples_data:
             current_sample = sample[0]
-            self.import_table1.insert('', tk.END, values=current_sample)
+            self.import_table1.insert('', tk.END, values=sample)
         
         for test in samples_tests:
             data_to_print = process_datetime(test)
