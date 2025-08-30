@@ -152,7 +152,7 @@ class AssignData:
         # Frame for dynamic input widget
         self.input_frame = ttk.Frame(form_frame)
         self.input_frame.grid(row=4, column=1, sticky=tk.W, pady=5)
-        
+         
         # Buttons (centered)
         button_frame = ttk.Frame(content_frame)
         button_frame.grid(row=2, column=0, columnspan=2, pady=20)
