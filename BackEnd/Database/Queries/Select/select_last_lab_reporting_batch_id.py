@@ -31,17 +31,16 @@ def select_last_lab_reporting_batch_id():
         
         
         query = """
-        
-            USE SRLSQL;
-        
-            SELECT TOP 1 * FROM dbo.Samples ORDER BY LabReportingBatchID DESC;  
+
+            SELECT TOP 1 LabReportingBatchID FROM dbo.Samples ORDER BY LabReportingBatchID DESC;  
         
         """
         
+        cursor.execute(query)
+        row = cursor.fetchone()
+     
         
-        result = cursor.execute(query)
-        
-        last_llrbi = int(result)
+        last_llrbi = row[0]
         
         cursor.close()
         

@@ -9,15 +9,17 @@ def generate_samples_for_st(sample_tests: list) -> list:
     
     lrbi = select_last_lab_reporting_batch_id()
     
+    sample_id_counter = 0
     
     for row in sample_tests:
         
-        sample_id_counter = 1
+        
         
         sample = []
     
         # Data from the excel subcontrated
-        
+        sample_id_counter += 1
+        item_id = sample_id_counter
         lab_sample_id = f"{lrbi}-{sample_id_counter:03d}"
         client_sample_id = row[0]
         matrix_id = row[17]
@@ -26,14 +28,15 @@ def generate_samples_for_st(sample_tests: list) -> list:
         
         
         
-        
+        sample.append(item_id)
         sample.append(lrbi)
+        sample.append(lab_sample_id)
         sample.append(client_sample_id)
         sample.append(matrix_id)
         sample.append(date_collected)
         sample.append(lab_id)
         
-        sample_id_counter += 1
+        
         
 
         samples_to_create.append(sample)

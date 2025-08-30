@@ -53,7 +53,7 @@ class ImportTab(ttk.Frame):
             
             "subcontracted": {
                 "samples" : ("ItemID", "LabReportingBatchID", "LabSampleId", "ClientSampleID", 
-                    "LabAnalysisRefMethodID", "MatrixID", "DateCollected", "Sampler"),
+                   "MatrixID", "DateCollected"),
                 
                 
                 
