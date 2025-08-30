@@ -22,8 +22,14 @@ def subcontracted_reader(ws_to_read) -> list:
             
             cell_to_read = ws_to_read.cell(row = row, column= col).value
 
+
             
-            register.append(cell_to_read)
+            if cell_to_read != None and cell_to_read != '':
+                register.append(cell_to_read)
+            
+            else:
+                
+                register.append("-")
         
         
         
