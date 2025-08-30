@@ -19,6 +19,7 @@ def generate_samples_for_st(sample_tests: list) -> list:
         # Data from the excel subcontrated
         
         lab_sample_id = f"{lrbi}-{sample_id_counter:03d}"
+
         client_sample_id = row[0]
         matrix_id = row[17]
         date_collected = row[16]
