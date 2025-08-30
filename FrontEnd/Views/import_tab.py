@@ -347,14 +347,14 @@ class ImportTab(ttk.Frame):
             elif workflow == 'subcontracted':
                 
                 # Subcontracted workflow
-                print(process_subcontracted)
+                #print(process_subcontracted)
                 registers_subcontracted = process_subcontracted(file_path, wb_to_read)
                 
-                generate_samples_for_st(registers_subcontracted)
+                print(generate_samples_for_st(registers_subcontracted))
                 
-                print("Registers to subcontracted")
-                print()
-                print(registers_subcontracted)
+                #print("Registers to subcontracted")
+                #print()
+                #print(registers_subcontracted)
                 
                 self.root.after(0, self.update_import_tables, [], registers_subcontracted)
                 
