@@ -54,9 +54,7 @@ class ImportTab(ttk.Frame):
             "subcontracted": {
                 "samples" : ("ItemID", "LabReportingBatchID", "LabSampleId", "ClientSampleID", 
                    "MatrixID", "DateCollected"),
-                
-                
-                
+                   
                 "tests": ("ClientSampleID", "LabAnalysisRefMethodID", "LabSampleID", "LabID", 
                           "ClientAnalyteID", "AnalyteName", "Result", "ResultUnits", 
                           "LabQualifiers", "ReportingLimit", "AnalyteType", "Dilution", 
@@ -350,13 +348,13 @@ class ImportTab(ttk.Frame):
                 #print(process_subcontracted)
                 registers_subcontracted = process_subcontracted(file_path, wb_to_read)
                 
-                print(generate_samples_for_st(registers_subcontracted))
+                samples_subcontracted = generate_samples_for_st(registers_subcontracted)
                 
                 #print("Registers to subcontracted")
                 #print()
                 #print(registers_subcontracted)
                 
-                self.root.after(0, self.update_import_tables, [], registers_subcontracted)
+                self.root.after(0, self.update_import_tables, samples_subcontracted, registers_subcontracted)
                 
             else:
                 
@@ -398,8 +396,7 @@ class ImportTab(ttk.Frame):
         # Insertar datos
         for sample in samples_data:
             current_sample = sample[0]
-            if len(current_sample) > 3:
-                self.import_table1.insert('', tk.END, values=current_sample)
+            self.import_table1.insert('', tk.END, values=current_sample)
         
         for test in samples_tests:
             data_to_print = process_datetime(test)

@@ -34,7 +34,7 @@ def generate_samples_for_st(sample_tests: list) -> list:
         sample.append(client_sample_id)
         sample.append(matrix_id)
         sample.append(date_collected)
-        sample.append(lab_id)
+        #sample.append(lab_id)
         
         
         
