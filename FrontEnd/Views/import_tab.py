@@ -7,7 +7,7 @@ from openpyxl import load_workbook
 
 from BackEnd.Database.Queries.Insert.insert_sample_tests import insert_sample_tests
 from BackEnd.Database.Queries.Insert.insert_samples import insert_samples
-from BackEnd.Processes.DataTypes.process_datetime import process_datetime
+from BackEnd.Processes.DataTypes.process_data import process_main
 from BackEnd.Processes.Read.excel_chain_data_reader import excel_chain_data_reader
 from BackEnd.Processes.Read.excel_parameters_reader import excel_parameters_reader
 from BackEnd.Processes.SubContracted.generate_samples_for_st import generate_samples_for_st
@@ -53,7 +53,7 @@ class ImportTab(ttk.Frame):
             
             "subcontracted": {
                 "samples" : ("ItemID", "LabReportingBatchID", "LabSampleId", "ClientSampleID", 
-                   "MatrixID", "DateCollected"),
+                   "MatrixID", "DateCollected", "Tag"),
                    
                 "tests": ("ClientSampleID", "LabAnalysisRefMethodID", "LabSampleID", "LabID", 
                           "ClientAnalyteID", "AnalyteName", "Result", "ResultUnits", 
@@ -395,11 +395,11 @@ class ImportTab(ttk.Frame):
         
         # Insertar datos
         for sample in samples_data:
-            current_sample = sample[0]
-            self.import_table1.insert('', tk.END, values=sample)
+            data_to_print = process_main(sample, "sample")
+            self.import_table1.insert('', tk.END, values=data_to_print)
         
         for test in samples_tests:
-            data_to_print = process_datetime(test)
+            data_to_print = process_main(test, "test")
             self.import_table2.insert('', tk.END, values=data_to_print)
 
 

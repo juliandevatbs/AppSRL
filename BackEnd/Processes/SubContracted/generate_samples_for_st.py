@@ -3,9 +3,9 @@
 from BackEnd.Database.Queries.Select.select_last_lab_reporting_batch_id import select_last_lab_reporting_batch_id
 
 
-def detect_sample_type(clietn_sample_id: str) -> str:
+def detect_sample_type(client_sample_id: str) -> str:
     
-    id_upper = clietn_sample_id.upper()
+    id_upper = client_sample_id.upper()
     
     if "BLANK" in id_upper:
         return "MB"
@@ -17,12 +17,14 @@ def detect_sample_type(clietn_sample_id: str) -> str:
         return "MS"
     if "DUP" in id_upper:
         return "DUP"
-    return "NORMAL"
+    return "N"
 
 
 
 def generate_samples_for_st(sample_tests: list) -> list:
-    
+
+    print(sample_tests)
+
     samples_to_create = []
     
     lrbi = select_last_lab_reporting_batch_id() + 1
@@ -39,7 +41,7 @@ def generate_samples_for_st(sample_tests: list) -> list:
         
         client_sample_id = row[0]
         matrix_id = row[17]
-        date_collected = row[16]
+        date_collected = row[19]
         lab_id = row[3]
         
         sample_type = detect_sample_type(str(client_sample_id))

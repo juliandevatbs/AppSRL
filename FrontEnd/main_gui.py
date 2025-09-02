@@ -5,12 +5,6 @@ from tkinter import ttk
 from PIL import Image, ImageTk
 
 
-
-
-# ====================================================================
-#                     PROJECT ROOT CONFIGURATION
-# ====================================================================
-
 def get_project_root():
     return Path(__file__).parent.parent.absolute()
 
@@ -30,7 +24,6 @@ class Main_Gui:
     def __init__(self, root):
 
         BASE_DIR = Path(__file__).parent.resolve()
-
         
         self.root = root
         self.root.title("App")
