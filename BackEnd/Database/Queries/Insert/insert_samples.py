@@ -24,9 +24,10 @@ def insert_samples(samples: list, columns):
         insert_query = f"INSERT INTO [dbo].[{table_name}] ({column_names}) VALUES ({placeholders})"
         
         # Insert each data row
-        for row_dict in samples:
-            original_data = row_dict[0]
+        for original_data in samples:
 
+            #original_data = row_dict[0]
+            print("DATOS ORIGINALES")
             print(original_data)
             
             # Crear una copia de los datos para modificar
@@ -39,7 +40,7 @@ def insert_samples(samples: list, columns):
                 # Combinar fecha y hora
                 # Posición 6 = hora ('12:45:00')
                 # Posición 8 = fecha ('11-03-25')
-                time_str = original_data[6]  # '12:45:00'
+                time_str = original_data[9]  # '12:45:00'
                 date_str = original_data[8]  # '11-03-25'
                 
                 # Combinar fecha y hora en formato datetime
@@ -48,19 +49,28 @@ def insert_samples(samples: list, columns):
             
                 
                 # Reorganizar datos según las columnas esperadas
-                # ["itemID", "LabReportingBatchID", "LabSampleID", "DateCollected", "ClientSampleID", "CollectMethod", "MatrixID", "Sampler", "TotalContainers"]
                 final_data = [
-                    original_data[0],   # itemID
-                    original_data[1],   # LabReportingBatchID  
-                    original_data[2],   # LabSampleID
-                    datetime_combined,  # DateCollected (fecha + hora combinadas)
-                    original_data[3],   # ClientSampleID (SW-1, SW-2, etc.)
-                    original_data[4],   # CollectMethod (Grab)
-                    original_data[5],   # MatrixID (GW)
-                    original_data[7],   # Sampler (Jessica Koller / GOAA)
-                    original_data[9]    # TotalContainers
+                    original_data[0],  # ITEMID
+                    original_data[1], #LABSAMPLEID
+                    original_data[2],  # CLIENT SAMPLE ID
+                    original_data[3],  # Collect Method
+                    original_data[4],  # CollectionAgency
+                    original_data[5],  # MATRIXID
+                    original_data[6],  # Sampler
+                    datetime_combined,
+                    original_data[11], #COMMENTS
+                    original_data[12], #SHIPPINGBATCHID
+                    original_data[13], #COOLER NUMBER
+                    original_data[14], #TEMPERATURE
+                    original_data[15], #ADAPT MATRIX
+                    original_data[16], #TOTAL CONTAINERS
+                    original_data[17], #LABID
+                    original_data[18]
                 ]
-                
+
+                print(f" ESTA ES LOS DATOS FINALES PARA CREAR -> {final_data}")
+
+
                 cursor.execute(insert_query, final_data)
                 samples_inserted += 1
         

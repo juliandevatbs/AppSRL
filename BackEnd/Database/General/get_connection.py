@@ -11,7 +11,7 @@ class DatabaseConnection:
         load_dotenv()
         # julian connection default
         # To change the active connection go to the .env file
-        self.active_config = os.getenv("DB_ACTIVE_CONFIG", 'julian')
+        self.active_config = os.getenv("DB_ACTIVE_CONFIG", 'chemilab')
     
     def get_connection_string(self):
         """Obtiene el string de conexión desde variables de entorno"""

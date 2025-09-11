@@ -22,14 +22,16 @@ from datetime import datetime
 class SampleWizard:
     
     
-    def __init__(self, parent=None):
-        
+    def __init__(self, parent = None):
+
+
+
         BASE_DIR = Path(__file__).parent.resolve()
         self.window = tk.Toplevel(parent) if parent else tk.Tk()
         self.window.title("Sample Creation Wizard")
         self.window.geometry("720x550")  
         self.window.resizable(False, False)
-        self.window.iconbitmap(BASE_DIR / "assets" / "logos" / "LOGO_SRL_FINAL.ico")
+        #self.root.iconbitmap(BASE_DIR / "Assets" / "logos" / "LOGO_SRL_FINAL.ico")
         
         # Variables para los campos
         self.client_sample_id_var = tk.StringVar()
@@ -232,7 +234,7 @@ class SampleWizard:
             self.update_comboboxes()
             
             # Mostrar batch ID
-            batch_text = f"{self.last_batch_id + 1}" if self.last_batch_id else "1"
+            batch_text = f"{self.last_batch_id}" if self.last_batch_id else "1"
             self.batch_label.config(text=batch_text)
             
             # Establecer fecha y hora actuales por defecto
@@ -388,7 +390,24 @@ class SampleWizard:
             sample_list.append(0)
             samples_to_create.append(sample_list)
                 
-        columns_to_insert = ["ItemID", "LabReportingBatchID", "ClientSampleID", "CollectMethod", "CollectionAgency", "MatrixID", "DateCollected", "Sampler", "ShippingBatchID", "CoolerNumber", "Temperature", "AdaptMatrixID", "TotalContainers", "LabSampleID", "QCSample"]
+        columns_to_insert = [
+                             "ItemID",
+                             "LabSampleID",
+                             "ClientSampleID",
+                             "CollectMethod",
+                             "CollectionAgency",
+                             "MatrixID",
+                             "Sampler",
+                             "DateCollected",
+                             "ResultComments",
+                             "ShippingBatchID",
+                             "CoolerNumber",
+                             "Temperature",
+                             "AdaptMatrixID",
+                             "TotalContainers",
+                             "LabID",
+                            "LabReportingBatchID"
+                            ]
             
         #print(columns_to_insert)
         
@@ -503,8 +522,7 @@ class SampleWizard:
             return False
             
         try:
-            # Aquí deberías llamar a tu función de inserción en BD
-            # Por ejemplo: insert_sample_to_database(sample_data)
+
             
             self.create_quantity_samples(sample_data['batch_id'], sample_data['quantity'], sample_data)
             
@@ -516,9 +534,7 @@ class SampleWizard:
                                        "Sample created successfully!\n\nWould you like to create another sample?")
             
             if result:
-                # Limpiar formulario para crear otro
                 self.clear_form()
-                # Enfocar en el primer campo
                 self.client_sample_id_entry.focus()
                 
                 #Update the last batch id

@@ -51,7 +51,6 @@ class SampleTestsWizard:
         self.reporting_limit_var = tk.StringVar()
         self.matrix_id_var = tk.StringVar()
         
-        # Datos para los comboboxes (estos deberían venir de tu BD)
         self.lab_reporting_batch_ids = []
         self.lab_sample_ids = []
         self.analyte_names = ["Arsenic", "Lead", "Mercury", "Cadmium", "Chromium", "Copper", "Zinc", "Iron", "Manganese"]
@@ -252,7 +251,6 @@ class SampleTestsWizard:
             return []
     
     def update_comboboxes(self):
-        """Actualiza los valores de los comboboxes"""
         # Comboboxes principales
         self.lab_reporting_batch_combo['values'] = self.lab_reporting_batch_ids
         

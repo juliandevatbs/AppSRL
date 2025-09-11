@@ -4,7 +4,6 @@ import tkinter as tk
 from tkinter import ttk
 from PIL import Image, ImageTk
 
-
 def get_project_root():
     return Path(__file__).parent.parent.absolute()
 
@@ -118,9 +117,7 @@ class Main_Gui:
         
         self.import_tab = ImportTab(self.notebook)
         self.notebook.add(self.import_tab, text="Import")
-            
 
-        
         # SECCION PARA CONTROLAR HILOS DE EJECUCIÓN
         self.db_thread_pool = []
         self.is_loading = False

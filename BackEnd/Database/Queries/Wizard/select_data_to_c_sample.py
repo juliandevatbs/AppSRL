@@ -54,7 +54,7 @@ def get_all_sample_data():
         batch_result = cursor.fetchone()
         
         if batch_result:
-            result_data['last_batch_id'] = int(batch_result[0])
+            result_data['last_batch_id'] = int(batch_result[0]) + 1
             print(f"Last batch ID: {result_data['last_batch_id']}")
         else:
             print("No batch records found")
