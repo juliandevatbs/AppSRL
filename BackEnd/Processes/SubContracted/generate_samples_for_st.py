@@ -45,28 +45,19 @@ def generate_samples_for_st(sample_tests: list) -> list:
         lab_id = row[3]
         
         sample_type = detect_sample_type(str(client_sample_id))
-        
-        
-        
-        sample = [
-            item_id,          # consecutivo interno
-            lrbi,             # batch id
-            lab_sample_id,    # SampleNumber (ej: 2508039-001)
-            client_sample_id, # ID crudo del Excel
-            matrix_id,        # matriz
-            date_collected,   # fecha de colección
-            sample_type,      # NORMAL / MB / LCS / MS / MSD / DUP
-            lab_id            # opcional si lo quieres guardar
-        ]
+
 
         
-        
-        
-        
-        
-        
-        
-    
+        sample = [
+            item_id,
+            lrbi,
+            lab_sample_id,
+            client_sample_id,
+            matrix_id,
+            date_collected,
+            sample_type,
+            lab_id
+        ]
 
         samples_to_create.append(sample)
     print(samples_to_create)

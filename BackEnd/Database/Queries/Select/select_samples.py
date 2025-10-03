@@ -42,15 +42,12 @@ def select_samples(batch_id: int, samples_filtered: list, sample_id, is_view: bo
                 S.Sampler,
                 S.DateCollected, 
                 S.MatrixID,
-                ISNULL(
-                    STUFF(
-                        (SELECT DISTINCT ',' + CAST(ST.LabAnalysisRefMethodID AS VARCHAR)
-                         FROM Sample_Tests ST 
-                         WHERE ST.LabReportingBatchID = S.LabReportingBatchID
-                         ORDER BY ',' + CAST(ST.LabAnalysisRefMethodID AS VARCHAR)
-                         FOR XML PATH('')), 1, 1, ''
-                    ), ''
-                ) AS AnalysisMethodIDs
+                S.Temperature,
+                S.ShippingBatchID,
+                S.CollectMethod,
+                S.CollectionAgency,
+                S.AdaptMatrixID,
+                S.LabID
             FROM Samples S
             WHERE 1=1
         """
@@ -60,16 +57,13 @@ def select_samples(batch_id: int, samples_filtered: list, sample_id, is_view: bo
             base_query += " AND S.QCSample = 0"
         # Si is_view es True, no agregamos filtro QCSample (permite 0 y 1)
         
-        #print("EJECUTANDO SELECT SAMPLEEEEEEEEEEEEEEEES")
-        
+
         if len(samples_filtered) > 0:
             # Si hay batch IDs para filtrar, usar esos IDs
             placeholders = ','.join(['?' for _ in samples_filtered])
             query = f"{base_query} AND S.LabReportingBatchID IN ({placeholders})"
             params = samples_filtered
-            #print(query)
         else:
-            #print("NO HAY MAS FILTROS")
             # Si no hay filtros, solo usar el batch_id proporcionado
             query = f"{base_query} AND S.LabReportingBatchID = ?"
             params = [batch_id]
@@ -88,7 +82,6 @@ def select_samples(batch_id: int, samples_filtered: list, sample_id, is_view: bo
         for row in results:
             results_list.append(list(row))
             
-        #print(f"Se encontraron {len(results_list)} muestras para los batch IDs consultados")
         print("QUERY USADO")
         print(query)
         

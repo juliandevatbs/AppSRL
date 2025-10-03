@@ -42,8 +42,10 @@ class ImportTab(ttk.Frame):
         self.WORKFLOW_CONFIG =  {
             
             "chain_of_custody": {
-                "samples" : ("ItemID", "LabReportingBatchID", "LabSampleId", "ClientSampleID", 
-                    "LabAnalysisRefMethodID", "MatrixID", "DateCollected", "Sampler"),
+                "samples" : ('itemID', 'LabReportingBatchID', 'LabSampleID', 'ClientSampleID',
+                                        'Sampler', 'Datecollected', 'MatrixID', 'AnalysisMethodIDs', 'Temperature',
+                                        'ShippingBatchID', 'CollectMethod', 'CollectionAgency', 'AdaptMatrixID',
+                                        'LabID'),
                 
                 "tests": ("ClientSampleID", "LabAnalysisRefMethodID", "LabSampleID", "AnalyteName", 
                   "Result", "ResultUnits", "DetectionLimit", "Dilution", "ReportingLimit", 
@@ -235,7 +237,6 @@ class ImportTab(ttk.Frame):
         # Reconfigure table 2
         self.import_table2["columns"] = columns2
         for col in columns2:
-        
             self.import_table2.heading(col, text=col)
             self.import_table2.column(col, anchor= tk.W)
                 

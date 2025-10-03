@@ -11,6 +11,8 @@ def get_dynamic_rows_per_page(WB_TO_PRINT, current_row: int = 1) -> int:
     """
     Calcula dinámicamente las filas por página basándose en alturas reales
     """
+
+
     worksheet = WB_TO_PRINT.active
     cache_key = id(worksheet)
     
@@ -47,16 +49,16 @@ def get_dynamic_rows_per_page(WB_TO_PRINT, current_row: int = 1) -> int:
         print(f"❌ Error calculando filas por página: {e}")
         return 79
 
+
 def pagination(WB_TO_PRINT, WB_TO_FORMAT, WB_TO_READ, row: int, rows_needed: int = 1):
     """
     FOOTER: 2 líneas ANTES del salto de página
     HEADER: 1 línea DESPUÉS del salto de página
     """
-    
-    
+
     # Obtener filas por página dinámicamente
     ROWS_PER_PAGE = get_dynamic_rows_per_page(WB_TO_PRINT, row)
-    
+
     # Si es la primera escritura (row == 2), agregar encabezado inicial
     if row == 2:
         print("Adding initial header at row 2")
@@ -65,58 +67,64 @@ def pagination(WB_TO_PRINT, WB_TO_FORMAT, WB_TO_READ, row: int, rows_needed: int
         write_header_data(WB_TO_PRINT, header_data, 1)
         print(f"Initial header ended at row {last_row}")
         return last_row + 3
-    
+
     # Calcular información de página actual
     current_page, page_start, page_end = get_page_info(row, ROWS_PER_PAGE)
-    """print(f"Current page: {current_page}, page range: {page_start}-{page_end}")
-    print(f"Available space in current page: {page_end - row + 1} rows")"""
-    
+
+    # CALCULAR LA ALTURA REAL DEL FOOTER
+    footer_height = get_footer_height(WB_TO_FORMAT)
+    print(f"Footer height: {footer_height} rows")
+
     # CALCULAR ESPACIO NECESARIO INCLUYENDO FOOTER
     # Footer necesita espacio + 2 líneas antes del salto
-    footer_height = 2 # Necesitamos saber cuántas filas ocupa el footer
-    space_needed_with_footer = rows_needed + footer_height + 1
-    
-    """print(f"Footer height: {footer_height} rows")
-    print(f"Total space needed (content + footer + 2): {space_needed_with_footer}")"""
-    
+    space_needed_with_footer = rows_needed + footer_height + 2
+
+    print(f"Current row: {row}, Page end: {page_end}")
+    print(f"Total space needed: {space_needed_with_footer}")
+    print(f"Available space: {page_end - row + 1}")
+
     # Verificar si TODO cabe (contenido + footer + 2 líneas)
     if row + space_needed_with_footer - 1 <= page_end:
         print("✅ Block + footer fits in current page, no pagination needed")
         return row
-    
+
     # NO CABE: Necesitamos paginación
-    #print("❌ Not enough space, pagination needed")
-    
+    print("❌ Not enough space, pagination needed")
+
     # FOOTER: 2 líneas ANTES del final de página
-    footer_start_row = page_end - footer_height - 2  # -1 para tener 2 líneas antes del salto
-    #print(f"🦶 Placing footer at row {footer_start_row} (2 lines before page end {page_end})")
-    
+    footer_start_row = page_end - footer_height - 1  # -1 para dejar 1 línea de espacio
+
+    # Asegurar que footer_start_row no sea negativo
+    if footer_start_row < 1:
+        print(f"⚠️  Warning: footer_start_row was {footer_start_row}, adjusting to 1")
+        footer_start_row = 1
+
+    print(f"🦶 Placing footer at row {footer_start_row}")
+
     # Copiar footer
-    
-    last_row_after_footer = footer_for_all(WB_TO_FORMAT, WB_TO_PRINT, WB_TO_FORMAT["footer__all"], footer_start_row  +1)
-    #print(f"Footer ended at row {last_row_after_footer}")
-    
+    last_row_after_footer = footer_for_all(WB_TO_FORMAT, WB_TO_PRINT, WB_TO_FORMAT["footer__all"], footer_start_row)
+    print(f"Footer ended at row {last_row_after_footer}")
+
     # SALTO DE PÁGINA (automático en page_end + 1)
     next_page_start = page_end + 1
-    #print(f"📄 Page break at row {page_end}, next page starts at {next_page_start}")
-    
+    print(f"📄 Page break at row {page_end}, next page starts at {next_page_start}")
+
     # HEADER: 1 línea DESPUÉS del salto de página
     header_start_row = next_page_start + 1
-    #print(f"🗂️ Placing header at row {header_start_row} (1 line after page start)")
-    
+    print(f"🗂️ Placing header at row {header_start_row}")
+
     # Copiar header
     last_row_after_header = header_format_copy(WB_TO_FORMAT, WB_TO_PRINT, WB_TO_FORMAT["Header"], header_start_row)
-    #print(f"Header ended at row {last_row_after_header}")
-    
+    print(f"Header ended at row {last_row_after_header}")
+
     # Escribir datos del encabezado
     header_data = excel_header_reader(WB_TO_READ)
-    write_header_data(WB_TO_PRINT, header_data, 1)
-    
+    write_header_data(WB_TO_PRINT, header_data, header_start_row)
+
     # Retornar la primera fila disponible después del header
     next_row = last_row_after_header + 1
-    #print(f"✅ Next available row for content: {next_row}")
-    #print(f"=== END PAGINATION DEBUG ===\n")
-    
+    print(f"✅ Next available row for content: {next_row}")
+
     return next_row
 
 def get_footer_height(WB_TO_FORMAT) -> int:

@@ -1,3 +1,4 @@
+import inspect
 import traceback
 import openpyxl
 from openpyxl.utils import get_column_letter, range_boundaries, column_index_from_string
@@ -9,12 +10,21 @@ def copy_excel_range(src_ws, dst_ws, src_range, dst_cell):
     try:
         #print(f"Copiando rango {src_range} a celda {dst_cell}")
 
+
+
+
+
+
+
+
+
         if not isinstance(src_range, str):
             raise TypeError(f"src_range debe ser string, no {type(src_range)}")
         # Obtener límites del rango fuente
         src_start_col, src_start_row, src_end_col, src_end_row = range_boundaries(src_range)
 
         # Obtener coordenadas destino
+        print(f"DESTINY CELLLLLLLLLLLL -> {dst_cell}")
         dst_col_letter, dst_row = coordinate_from_string(dst_cell)
         dst_col = column_index_from_string(dst_col_letter)
 

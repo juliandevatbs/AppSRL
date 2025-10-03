@@ -36,6 +36,9 @@ class CreateQc:
         self.window.geometry("450x400")
         
         self.window.resizable(False, False)
+
+        # Important data to select and create the qc for specific sample
+        self.data_to_select = []
         
         # Comment out the icon line if the file doesn't exist
         try:
@@ -79,16 +82,18 @@ class CreateQc:
             checkbox.grid(row=2 + i, column=0, sticky='w', pady=2, padx=20)
             self.control_vars[control] = var
         
-        # Sección 2: Batch ID
-        batch_label = ttk.Label(main_frame, text="Batch ID:",
+        # Sección 2: LabReportingBatchID
+        batch_label = ttk.Label(main_frame, text="LabReportingBatchID: ",
                                font=("Century Gothic", 10, "bold"))
         batch_label.grid(row=8, column=0, sticky=tk.W, pady=(20, 5))
         
         self.batch_id_entry = ttk.Entry(main_frame, textvariable=self.batch_id_var, width=30)
         self.batch_id_entry.grid(row=9, column=0, columnspan=2, sticky=tk.W, pady=(0, 10))
-        
+        self.batch_id_var.bind('<<ComboboxSelected>>', self.on_batch_id_change)
+
+
         # Sección 3: Lab Sample ID
-        lab_sample_label = ttk.Label(main_frame, text="Lab Sample ID:",
+        lab_sample_label = ttk.Label(main_frame, text="LabSampleID: ",
                                     font=("Century Gothic", 10, "bold"))
         lab_sample_label.grid(row=10, column=0, sticky=tk.W, pady=(10, 5))
         

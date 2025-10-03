@@ -38,6 +38,8 @@ def header_summary_format_copy(source_wb, destiny_wb, source_sheet_name, destina
             if check_pagination_needed(destination_row, total_rows_needed):
                 current_row = pagination(WB_TO_PRINT,WB_TO_FORMAT, WB_TO_READ, destination_row, total_rows_needed)
 
+
+
             # Llamar a la función de copia
             success = copy_excel_range(
                 src_ws=source_sheet,  # Objeto Worksheet de origen

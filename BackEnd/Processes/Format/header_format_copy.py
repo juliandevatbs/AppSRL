@@ -1,10 +1,22 @@
-
+import inspect
 
 from BackEnd.Utils.copy_excel_range import copy_excel_range
 
 
 def header_format_copy(source_wb, destiny_wb, source_sheet_name, destination_row):
     header_range = "A1:AQ9"
+
+    caller_frame = inspect.currentframe().f_back
+    caller_info = inspect.getframeinfo(caller_frame)
+
+    print(f"DATO RECIBIDO -> {destination_row}")
+    print(f"LLAMADO DESDE ARCHIVO -> {caller_info.filename}")
+    print(f"Linea -> {caller_info.lineno}")
+    print(f"Funcion -> {caller_info.function}")
+
+
+
+
     
     if type(destination_row) != int:
         #print(type(destination_row))
