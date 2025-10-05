@@ -633,6 +633,51 @@ class ReportTab(ttk.Frame):
             print(f"Error {ex}")
 
     def show_create_qc_view(self):
+        
+        
+        
+        try:
+            
+            
+            # Obtain the selected data
+            selected_items = self.table2.selection()
+            
+            if not selected_items:
+                messagebox.showwarning("Warning", "Please select a sample test row first")
+                return
+                
+            
+            values = self.table2.item(selected_items[0], 'values')
+            
+            work_order = values[15]
+            lab_sample_id = values[4]
+            analyte_name = values[5]
+            analyte_group_id = values[3]
+            client_sample_id = values[2]
+            
+            create_qc_view = CreateQc(
+                
+                parent =self.root,
+                work_order=work_order,
+                lab_sample_id=lab_sample_id,
+                analyte_name=analyte_name,
+                analyte_group_id=analyte_group_id,
+                client_sample_id=client_sample_id
+
+            )
+            
+            self.root.wait_window(create_qc_view.window)
+            self.update_status("Create QC view closed")
+            
+            
+        except IndexError:
+            messagebox.showerror("Error", "Could not read sample test data")
+        except Exception as ex:
+            messagebox.showerror("Error", f"Error opening QC view: {str(ex)}")
+            print(f"Error {ex}")
+        
+        
+        
         try:
             create_qc_view = CreateQc(self.root)
             self.root.wait_window(create_qc_view.window)

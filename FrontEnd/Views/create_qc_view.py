@@ -8,7 +8,8 @@ This is the function to create quality controls
 from pathlib import Path
 import sys
 
-from BackEnd.Database.General.get_connection import DatabaseConnection
+
+
 
 def get_project_root():
     return Path(__file__).parent.parent.absolute()
@@ -21,293 +22,430 @@ sys.path.append(str(PROJECT_DIR))
 # ==================================================================== #
 #                     IMPORTS
 # ====================================================================
+from BackEnd.Processes.DataTypes.QC_creation.process_mb import process_mb
 
 import tkinter as tk
 from tkinter import ttk, messagebox
 
 class CreateQc:
-    # Init config
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, work_order=None, lab_sample_id=None, 
+                 analyte_name=None, analyte_group_id=None, client_sample_id=None):
+        """
+        Initialize QC creation window
+        
+        Args:
+            parent: Parent window
+            work_order: Work Order ID
+            lab_sample_id: Lab Sample ID
+            analyte_name: Analyte Name
+            analyte_group_id: Analyte Group ID
+        """
         BASE_DIR = Path(__file__).parent.resolve()
         self.window = tk.Toplevel(parent) if parent else tk.Tk()
-        # States title of window
-        self.window.title("Create QC")
-        # States magnitude of window
-        self.window.geometry("450x400")
         
+        # Store received parameters
+        self.work_order = work_order
+        self.lab_sample_id = lab_sample_id
+        self.analyte_name = analyte_name
+        self.analyte_group_id = analyte_group_id
+        self.client_sample_id =client_sample_id
+        
+        # Window configuration
+        self.window.title("Create Quality Controls")
+        self.window.geometry("550x700")
         self.window.resizable(False, False)
-
-        # Important data to select and create the qc for specific sample
-        self.data_to_select = []
         
-        # Comment out the icon line if the file doesn't exist
+        # Center window
+        self.center_window()
+        
+        # Configure colors and styles
+        self.configure_styles()
+        
+        # Set icon
         try:
             self.window.iconbitmap(BASE_DIR / "assets" / "logos" / "LOGO_SRL_FINAL.ico")
         except:
             pass
         
-        self.batch_id_var = tk.StringVar()
-        self.lab_sample_id_var = tk.StringVar()
-        
-        # method blank, lcs, lcsd, ms, msd
+        # QC types available
         self.controls = ["MB", "LCS", "LCSD", "MS", "MSD"]
         
         self.setup_ui()
+    
+    def center_window(self):
+        """Center the window on screen"""
+        self.window.update_idletasks()
+        width = self.window.winfo_width()
+        height = self.window.winfo_height()
+        x = (self.window.winfo_screenwidth() // 2) - (width // 2)
+        y = (self.window.winfo_screenheight() // 2) - (height // 2)
+        self.window.geometry(f'{width}x{height}+{x}+{y}')
+    
+    def configure_styles(self):
+        """Configure custom styles"""
+        style = ttk.Style()
+        style.theme_use('clam')
         
-        # Bind event to batch_id entry
-        self.batch_id_var.trace('w', self.on_batch_id_change)
+        # Configure colors
+        bg_color = "#f0f0f0"
+        primary_color = "#2c3e50"
+        accent_color = "#3498db"
+        success_color = "#27ae60"
+        
+        self.window.configure(bg=bg_color)
+        
+        # Title style
+        style.configure("Title.TLabel", 
+                       font=("Century Gothic", 18, "bold"),
+                       foreground=primary_color,
+                       background=bg_color)
+        
+        # Subtitle style
+        style.configure("Subtitle.TLabel",
+                       font=("Century Gothic", 11, "bold"),
+                       foreground=primary_color,
+                       background=bg_color)
+        
+        # Info style
+        style.configure("Info.TLabel",
+                       font=("Century Gothic", 10),
+                       foreground="#555555",
+                       background=bg_color)
+        
+        # Button style
+        style.configure("Accent.TButton",
+                       font=("Century Gothic", 10, "bold"),
+                       foreground="white",
+                       background=accent_color)
+        
+        style.configure("Success.TButton",
+                       font=("Century Gothic", 11, "bold"))
     
     def setup_ui(self):
-        # Frame principal
-        main_frame = ttk.Frame(self.window, padding="20")
-        main_frame.pack(fill=tk.BOTH, expand=True)
+        """Setup user interface"""
+        # Main container with padding
+        main_frame = tk.Frame(self.window, bg="#f0f0f0")
+        main_frame.pack(fill=tk.BOTH, expand=True, padx=30, pady=20)
         
-        # Título
-        title_label = ttk.Label(main_frame, text="Create Quality Controls",
-                               font=("Century Gothic", 16, "bold"))
-        title_label.grid(row=0, column=0, columnspan=2, pady=(0, 20))
+        # Header section
+        self.create_header(main_frame)
         
-        # Sección 1: Selección de controles
-        controls_label = ttk.Label(main_frame, text="Select Quality Controls:",
-                                  font=("Century Gothic", 12, "bold"))
-        controls_label.grid(row=1, column=0, columnspan=2, sticky='w', pady=(0, 10))
+        # Separator
+        ttk.Separator(main_frame, orient='horizontal').pack(fill='x', pady=15)
         
-        # Variables para los checkboxes
-        self.control_vars = {}  # Diccionario para almacenar los BooleanVar de cada control
+        # Sample information section
+        self.create_info_section(main_frame)
         
-        # Crear checkboxes dinámicamente
-        for i, control in enumerate(self.controls):
+        # Separator
+        ttk.Separator(main_frame, orient='horizontal').pack(fill='x', pady=10)
+        
+        # QC selection section
+        self.create_qc_selection(main_frame)
+        
+        # Separator
+        ttk.Separator(main_frame, orient='horizontal').pack(fill='x', pady=15)
+        
+        # Buttons section
+        self.create_buttons(main_frame)
+    
+    def create_header(self, parent):
+        """Create header with title"""
+        header_frame = tk.Frame(parent, bg="#f0f0f0")
+        header_frame.pack(fill='x', pady=(0, 10))
+        
+        title_label = ttk.Label(header_frame, 
+                               text="Create Quality Controls",
+                               style="Title.TLabel")
+        title_label.pack()
+        
+        subtitle_label = ttk.Label(header_frame,
+                                   text="Select the quality control types to generate",
+                                   style="Info.TLabel")
+        subtitle_label.pack(pady=(5, 0))
+    
+    def create_info_section(self, parent):
+        """Create sample information section"""
+        info_frame = tk.Frame(parent, bg="#ffffff", relief=tk.RIDGE, bd=1)
+        info_frame.pack(fill='x', pady=10)
+        
+        # Internal padding
+        inner_frame = tk.Frame(info_frame, bg="#ffffff")
+        inner_frame.pack(fill='x', padx=15, pady=15)
+        
+        ttk.Label(inner_frame, 
+                 text="Sample Information",
+                 style="Subtitle.TLabel",
+                 background="#ffffff").pack(anchor='w', pady=(0, 10))
+        
+        # Create info grid
+        info_data = [
+            ("Work Order:", self.work_order or "Not specified"),
+            ("Lab Sample ID:", self.lab_sample_id or "Not specified"),
+            ("Analyte Name:", self.analyte_name or "Not specified"),
+            ("Analyte Group ID:", self.analyte_group_id or "Not specified")
+        ]
+        
+        for i, (label, value) in enumerate(info_data):
+            row_frame = tk.Frame(inner_frame, bg="#ffffff")
+            row_frame.pack(fill='x', pady=3)
+            
+            ttk.Label(row_frame, 
+                     text=label,
+                     font=("Century Gothic", 9, "bold"),
+                     foreground="#2c3e50",
+                     background="#ffffff").pack(side='left')
+            
+            ttk.Label(row_frame,
+                     text=value,
+                     font=("Century Gothic", 9),
+                     foreground="#555555",
+                     background="#ffffff").pack(side='left', padx=(5, 0))
+    
+    def create_qc_selection(self, parent):
+        """Create QC type selection section"""
+        qc_frame = tk.Frame(parent, bg="#ffffff", relief=tk.RIDGE, bd=1)
+        qc_frame.pack(fill='both', expand=True, pady=10)
+        
+        # Internal padding
+        inner_frame = tk.Frame(qc_frame, bg="#ffffff")
+        inner_frame.pack(fill='both', expand=True, padx=15, pady=15)
+        
+        ttk.Label(inner_frame,
+                 text="Select Quality Control Types:",
+                 style="Subtitle.TLabel",
+                 background="#ffffff").pack(anchor='w', pady=(0, 15))
+        
+        # Variables for checkboxes
+        self.control_vars = {}
+        
+        # QC descriptions
+        qc_descriptions = {
+            "MB": "Method Blank - Blank sample to detect contamination",
+            "LCS": "Laboratory Control Sample - Sample with known concentration",
+            "LCSD": "Laboratory Control Sample Duplicate - Duplicate of LCS",
+            "MS": "Matrix Spike - Sample with added analyte",
+            "MSD": "Matrix Spike Duplicate - Duplicate of MS"
+        }
+        
+        # Create checkboxes with descriptions
+        for control in self.controls:
+            # Container for each checkbox
+            cb_frame = tk.Frame(inner_frame, bg="#ffffff")
+            cb_frame.pack(fill='x', pady=5)
+            
             var = tk.BooleanVar()
-            checkbox = ttk.Checkbutton(main_frame, text=control, variable=var)
-            checkbox.grid(row=2 + i, column=0, sticky='w', pady=2, padx=20)
+            
+            # Checkbox with larger font
+            cb = tk.Checkbutton(cb_frame,
+                               text=control,
+                               variable=var,
+                               font=("Century Gothic", 10, "bold"),
+                               bg="#ffffff",
+                               activebackground="#ffffff",
+                               fg="#2c3e50",
+                               selectcolor="#ffffff")
+            cb.pack(side='left', padx=5)
+            
+            # Description
+            desc_label = ttk.Label(cb_frame,
+                                  text=qc_descriptions.get(control, ""),
+                                  font=("Century Gothic", 8),
+                                  foreground="#777777",
+                                  background="#ffffff")
+            desc_label.pack(side='left', padx=(10, 0))
+            
             self.control_vars[control] = var
-        
-        # Sección 2: LabReportingBatchID
-        batch_label = ttk.Label(main_frame, text="LabReportingBatchID: ",
-                               font=("Century Gothic", 10, "bold"))
-        batch_label.grid(row=8, column=0, sticky=tk.W, pady=(20, 5))
-        
-        self.batch_id_entry = ttk.Entry(main_frame, textvariable=self.batch_id_var, width=30)
-        self.batch_id_entry.grid(row=9, column=0, columnspan=2, sticky=tk.W, pady=(0, 10))
-        self.batch_id_var.bind('<<ComboboxSelected>>', self.on_batch_id_change)
-
-
-        # Sección 3: Lab Sample ID
-        lab_sample_label = ttk.Label(main_frame, text="LabSampleID: ",
-                                    font=("Century Gothic", 10, "bold"))
-        lab_sample_label.grid(row=10, column=0, sticky=tk.W, pady=(10, 5))
-        
-        self.lab_sample_combobox = ttk.Combobox(main_frame, textvariable=self.lab_sample_id_var,
-                                               width=27, state="readonly")
-        self.lab_sample_combobox.grid(row=11, column=0, columnspan=2, sticky=tk.W, pady=(0, 20))
-        
-        # Status label para mostrar información
-        self.status_label = ttk.Label(main_frame, text="Enter Batch ID to load Lab Sample IDs",
-                                     foreground="gray")
-        self.status_label.grid(row=12, column=0, columnspan=2, sticky=tk.W, pady=(0, 10))
-        
-        # Botones
-        button_frame = ttk.Frame(main_frame)
-        button_frame.grid(row=13, column=0, columnspan=2, pady=(10, 0))
-        
-        # Botón para mostrar selección (debug)
-        check_btn = ttk.Button(button_frame, text="Preview Selection", 
-                              command=self.mostrar_seleccion)
-        check_btn.pack(side=tk.LEFT, padx=(0, 10))
-        
-        # Botón principal
-        create_btn = ttk.Button(button_frame, text="Create Quality Controls", 
-                               command=self.create_quality_controls)
-        create_btn.pack(side=tk.LEFT)
     
-    def on_batch_id_change(self, *args):
-        """
-        Se ejecuta cuando el Batch ID cambia
-        """
-        batch_id = self.batch_id_var.get().strip()
+    def create_buttons(self, parent):
+        """Create action buttons"""
+        button_frame = tk.Frame(parent, bg="#f0f0f0")
+        button_frame.pack(fill='x', pady=(10, 0))
         
-        if len(batch_id) >= 3:  # Solo buscar si hay al menos 3 caracteres
-            self.load_lab_sample_ids(batch_id)
-        else:
-            # Limpiar combobox si no hay suficientes caracteres
-            self.lab_sample_combobox['values'] = ()
-            self.lab_sample_id_var.set('')
-            self.status_label.config(text="Enter Batch ID to load Lab Sample IDs", foreground="gray")
+        # Cancel button
+        cancel_btn = ttk.Button(button_frame,
+                               text="Cancel",
+                               command=self.window.destroy,
+                               width=15)
+        cancel_btn.pack(side='left', padx=(0, 5))
+        
+        # Preview button
+        preview_btn = ttk.Button(button_frame,
+                                text="Preview Selection",
+                                command=self.show_preview,
+                                style="Accent.TButton",
+                                width=18)
+        preview_btn.pack(side='left', padx=(0, 5))
+        
+        # Create button
+        create_btn = ttk.Button(button_frame,
+                               text="Create QC",
+                               command=self.create_quality_controls,
+                               style="Success.TButton",
+                               width=18)
+        create_btn.pack(side='right')
     
-    def load_lab_sample_ids(self, batch_id):
-        """
-        Carga los Lab Sample IDs desde la base de datos basado en el Batch ID
-        """
-        try:
-            # Llamar a la función de consulta de base de datos
-            lab_sample_ids = self.filter_queries(batch_id)
-            
-            if lab_sample_ids:
-                # Extraer solo los IDs de la lista de listas
-                lab_sample_ids_flat = [row[0] for row in lab_sample_ids if row]
-                
-                self.lab_sample_combobox['values'] = lab_sample_ids_flat
-                self.status_label.config(text=f"Found {len(lab_sample_ids_flat)} Lab Sample IDs", 
-                                       foreground="green")
-                # Seleccionar el primero por defecto
-                if lab_sample_ids_flat:
-                    self.lab_sample_id_var.set(lab_sample_ids_flat[0])
-            else:
-                self.lab_sample_combobox['values'] = ()
-                self.lab_sample_id_var.set('')
-                self.status_label.config(text="No Lab Sample IDs found for this Batch ID", 
-                                       foreground="orange")
-                
-        except Exception as e:
-            self.lab_sample_combobox['values'] = ()
-            self.lab_sample_id_var.set('')
-            self.status_label.config(text=f"Error loading data: {str(e)}", foreground="red")
-            print(f"Error in load_lab_sample_ids: {e}")
-    
-    def filter_queries(self, batch_id: str) -> list:
-        """
-        Consulta la base de datos para obtener los Lab Sample IDs basados en el Batch ID
+    def show_preview(self):
+        """Show preview of selected QCs"""
+        selected = [ctrl for ctrl, var in self.control_vars.items() if var.get()]
         
-        Args:
-            batch_id (str): ID del batch a consultar
-            
-        Returns:
-            list: Lista de listas con los Lab Sample IDs encontrados
-        """
-        results_list = []
-        conn = None
-        cursor = None
+        if not selected:
+            messagebox.showwarning("No Selection", 
+                                  "Please select at least one Quality Control type.")
+            return
         
-        try:
-            instance_db = DatabaseConnection()
-            conn = DatabaseConnection.get_conn(instance_db)
-            cursor = conn.cursor()
-            
-            base_query = """
-                SELECT DISTINCT LabSampleID FROM Samples WHERE LabReportingBatchID = ?
-            """
-            
-            cursor.execute(base_query, (batch_id,))
-            results = cursor.fetchall()
-            
-            # Convertir resultados a lista
-            for row in results:
-                results_list.append(list(row))
-            
-            print(f"Query results for batch {batch_id}: {results_list}")
-            
-        except Exception as e:
-            print(f"Error al seleccionar muestras: {e}")
-            raise e  # Re-raise para que se maneje en load_lab_sample_ids
-            
-        finally:
-            # Cerrar cursor y conexión apropiadamente
-            if cursor:
-                cursor.close()
-            if conn:
-                conn.close()
-                
-        return results_list
-    
-    def mostrar_seleccion(self):
-        """
-        Muestra la selección actual (para debug)
-        """
-        seleccionados = [ctrl for ctrl, var in self.control_vars.items() if var.get()]
-        batch_id = self.batch_id_var.get().strip()
-        lab_sample_id = self.lab_sample_id_var.get().strip()
+        info = "═" * 50 + "\n"
+        info += "QUALITY CONTROL PREVIEW\n"
+        info += "═" * 50 + "\n\n"
+        info += f"Work Order: {self.work_order or 'Not specified'}\n"
+        info += f"Lab Sample ID: {self.lab_sample_id or 'Not specified'}\n"
+        info += f"Analyte Name: {self.analyte_name or 'Not specified'}\n"
+        info += f"Analyte Group ID: {self.analyte_group_id or 'Not specified'}\n\n"
+        info += f"Selected QC Types: {', '.join(selected)}\n"
+        info += "═" * 50
         
-        info = f"Quality Controls: {', '.join(seleccionados) if seleccionados else 'None'}\n"
-        info += f"Batch ID: {batch_id if batch_id else 'Not specified'}\n"
-        info += f"Lab Sample ID: {lab_sample_id if lab_sample_id else 'Not selected'}"
-        
-        messagebox.showinfo("Current Selection", info)
+        messagebox.showinfo("Preview", info)
     
     def create_quality_controls(self):
-        """
-        Función principal para crear los controles de calidad
-        """
-        # Validar selecciones
-        seleccionados = [ctrl for ctrl, var in self.control_vars.items() if var.get()]
-        batch_id = self.batch_id_var.get().strip()
-        lab_sample_id = self.lab_sample_id_var.get().strip()
+        """Main function to create quality controls"""
+        selected = [ctrl for ctrl, var in self.control_vars.items() if var.get()]
         
-        # Validaciones
-        if not seleccionados:
-            messagebox.showerror("Error", "Please select at least one Quality Control type.")
+        # Validation
+        if not selected:
+            messagebox.showerror("Error", 
+                               "Please select at least one Quality Control type.")
             return
         
-        if not batch_id:
-            messagebox.showerror("Error", "Please enter a Batch ID.")
-            return
-        
-        if not lab_sample_id:
-            messagebox.showerror("Error", "Please select a Lab Sample ID.")
-            return
-        
-        # Confirmación
+        # Confirmation
         confirm_msg = f"Create the following Quality Controls?\n\n"
-        confirm_msg += f"Controls: {', '.join(seleccionados)}\n"
-        confirm_msg += f"Batch ID: {batch_id}\n"
-        confirm_msg += f"Lab Sample ID: {lab_sample_id}"
+        confirm_msg += f"QC Types: {', '.join(selected)}\n"
+        confirm_msg += f"Work Order: {self.work_order}\n"
+        confirm_msg += f"Lab Sample ID: {self.lab_sample_id}\n"
+        confirm_msg += f"Analyte: {self.analyte_name}\n"
         
         if messagebox.askyesno("Confirm Creation", confirm_msg):
             try:
-                # AQUÍ IMPLEMENTA LA LÓGICA PARA CREAR LOS QC
-                self.execute_qc_creation(seleccionados, batch_id, lab_sample_id)
+                self.execute_qc_creation(selected)
                 
-                messagebox.showinfo("Success", 
+                messagebox.showinfo("Success",
                                    f"Quality Controls created successfully!\n\n"
-                                   f"Created: {', '.join(seleccionados)}\n"
-                                   f"For Batch: {batch_id}")
+                                   f"Created: {', '.join(selected)}\n"
+                                   f"For Sample: {self.lab_sample_id}")
                 
-                # Opcional: cerrar ventana después de crear
-                # self.window.destroy()
+                self.window.destroy()
                 
             except Exception as e:
-                messagebox.showerror("Error", f"Failed to create Quality Controls:\n{str(e)}")
+                messagebox.showerror("Error", 
+                                   f"Failed to create Quality Controls:\n{str(e)}")
     
-    def execute_qc_creation(self, control_types, batch_id, lab_sample_id):
+    def execute_qc_creation(self, control_types):
         """
-        IMPLEMENTA AQUÍ LA LÓGICA PARA CREAR LOS QC EN LA BASE DE DATOS
+        Execute QC creation in database
         
         Args:
-            control_types: Lista de tipos de control seleccionados ['MB', 'LCS', etc.]
-            batch_id: ID del batch
-            lab_sample_id: ID de la muestra de laboratorio
+            control_types: List of selected control types ['MB', 'LCS', etc.]
         """
-        # TODO: Implementar la creación real en la base de datos
         print(f"Creating QC:")
         print(f"  Control Types: {control_types}")
-        print(f"  Batch ID: {batch_id}")
-        print(f"  Lab Sample ID: {lab_sample_id}")
+        print(f"  Work Order: {self.work_order}")
+        print(f"  Lab Sample ID: {self.lab_sample_id}")
+        print(f"  Analyte Name: {self.analyte_name}")
+        print(f"  Analyte Group ID: {self.analyte_group_id}")
         
-        # Aquí deberías:
-        # 1. Conectar a la base de datos
-        # 2. Insertar los registros de QC
-        # 3. Manejar cualquier error
         
-        # Simulación de procesamiento
+        
+        send_data_to_process = {}
+        
+        
+        send_data_to_process["control_type"] = control_types
+        send_data_to_process["work_order"] = self.work_order
+        send_data_to_process["lab_sample_id"] = self.lab_sample_id
+        send_data_to_process["analyte_name"] = self.analyte_name
+        send_data_to_process["analyte_group_id"] = self.analyte_group_id
+        send_data_to_process["client_sample_id"] = self.client_sample_id
+        
+        process_mb(send_data_to_process)
+        
+        # TODO: Implement actual database insertion
+        # conn = None
+        # cursor = None
+        # try:
+        #     instance_db = DatabaseConnection()
+        #     conn = DatabaseConnection.get_conn(instance_db)
+        #     cursor = conn.cursor()
+        #     
+        #     for qc_type in control_types:
+        #         query = """
+        #             INSERT INTO QualityControls 
+        #             (WorkOrder, LabSampleID, AnalyteName, AnalyteGroupID, QCType)
+        #             VALUES (?, ?, ?, ?, ?)
+        #         """
+        #         cursor.execute(query, (self.work_order, self.lab_sample_id, 
+        #                               self.analyte_name, self.analyte_group_id, qc_type))
+        #     
+        #     conn.commit()
+        #     
+        # except Exception as e:
+        #     if conn:
+        #         conn.rollback()
+        #     raise e
+        # finally:
+        #     if cursor:
+        #         cursor.close()
+        #     if conn:
+        #         conn.close()
+        
         import time
-        time.sleep(1)  # Simula tiempo de procesamiento
+        time.sleep(0.5)
 
-def show_create_qc_view(parent=None):
+
+def show_create_qc_view(parent=None, work_order=None, lab_sample_id=None,
+                       analyte_name=None, analyte_group_id=None):
     """
-    Function to open the view
+    Function to open the QC creation view
+    
+    Args:
+        parent: Parent window
+        work_order: Work Order ID
+        lab_sample_id: Lab Sample ID
+        analyte_name: Analyte Name
+        analyte_group_id: Analyte Group ID
+    
+    Example usage:
+        show_create_qc_view(
+            parent=main_window,
+            work_order="WO-2024-001",
+            lab_sample_id="LS-12345",
+            analyte_name="Lead",
+            analyte_group_id="METALS-01"
+        )
     """
-    show_create_qc_view = CreateQc(parent)
+    qc_view = CreateQc(
+        parent=parent,
+        work_order=work_order,
+        lab_sample_id=lab_sample_id,
+        analyte_name=analyte_name,
+        analyte_group_id=analyte_group_id
+    )
+    
     if parent:
-        show_create_qc_view.window.grab_set()
-        show_create_qc_view.window.focus_set()
+        qc_view.window.grab_set()
+        qc_view.window.focus_set()
     
     if parent is None:
-        show_create_qc_view.window.mainloop()
+        qc_view.window.mainloop()
     
-    return show_create_qc_view
+    return qc_view
 
-def create_qc():
-    show_create_qc_view()
+
+def create_qc(work_order=None, lab_sample_id=None, 
+             analyte_name=None, analyte_group_id=None):
+    """
+    Helper function to create QC without parent window
+    """
+    show_create_qc_view(
+        work_order=work_order,
+        lab_sample_id=lab_sample_id,
+        analyte_name=analyte_name,
+        analyte_group_id=analyte_group_id
+    )
     return True
-
-if __name__ == '__main__':
-    show_create_qc_view()
