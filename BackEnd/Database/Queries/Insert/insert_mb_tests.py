@@ -30,48 +30,49 @@ def insert_mb_tests(data_to_create: dict) -> bool:
         # Query with params
         # Query with params
         query = """
-            INSERT INTO Sample_Tests (
-                ClientSampleID,
-                LabAnalysisRefMethodID,
-                LabSampleID,
-                LabID,
-                AnalyteName,
-                AnalysisType,
-                ReportableResult,
-                TotalOrDissolved,
-                PrepBatchID,
-                MethodBatchID,
-                PreservationIntact,
-                LabReportingBatchID, 
-                GroupLongName,
-                TagMB,
-                Preservative
-            )
-            VALUES
-            
-            (
-            ?,    
-            ?,
-            ?,
-            'E83484',
-            ?,
-            'RES',
-            1,
-            'TOT',
-            'PB09222518',
-            'MB09222518',
-            1,
-            ?,
-            'Classical Chemistry Parameters',
-            1,
-            1
-          
-            )
-            
-            """
+        INSERT INTO Sample_Tests (
+        ItemID,
+        ClientSampleID,
+        LabAnalysisRefMethodID,
+        LabSampleID,
+        LabID,
+        AnalyteName,
+        AnalysisType,
+        ReportableResult,
+        TotalOrDissolved,
+        PrepBatchID,
+        MethodBatchID,
+        PreservationIntact,
+        LabReportingBatchID, 
+        GroupLongName,
+        TagMB,
+        Preservative
+    )
+    VALUES (
+        (SELECT MAX(ItemID) + 1 
+         FROM Sample_Tests 
+         WHERE LabReportingBatchID = ?),
+        ?,    -- ClientSampleID
+        ?,    -- LabAnalysisRefMethodID
+        ?,    -- LabSampleID
+        'E83484',
+        ?,    -- AnalyteName
+        'RES',
+        1,
+        'TOT',
+        'PB09222518',
+        'MB09222518',
+        1,
+        ?,    -- LabReportingBatchID
+        'Classical Chemistry Parameters',
+        1,
+        1
+    )
+        """
         
         # Ejecutar con parámetros
         cursor.execute(query, (
+            data_to_create.get("work_order"),
             data_to_create.get("ClientSampleID"),
             data_to_create.get("LabAnalysisRefMethodID"),
             data_to_create.get("LabSampleID"),

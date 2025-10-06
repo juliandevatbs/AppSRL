@@ -35,6 +35,7 @@ def process_mb_samples(data_to_process: dict) :
     
     #lab_sample_id_orig -> lbid original to filter
     processed_data["lab_sample_id_orig"] =lab_sample_id
+    processed_data["work_order"] = work_order
     
         
     
@@ -61,6 +62,7 @@ def process_mb_tests(data_to_process: dict):
     tests_mb_processed = {}
     
     
+    tests_mb_processed["work_order"] = work_order
     tests_mb_processed["ClientSampleID"] = fixed_csid
     tests_mb_processed["LabAnalysisRefMethodID"] = data_to_process.get("analyte_group_id")
     tests_mb_processed["LabSampleID"] = data_to_process.get("lab_sample_id")

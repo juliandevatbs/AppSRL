@@ -32,7 +32,8 @@ def insert_mb_samples(data_to_create: dict) -> bool:
         
         query = """
             INSERT INTO Samples (
-                LabReportingBatchID, LabSampleID, ClientSampleID,
+                
+                ItemID, LabReportingBatchID, LabSampleID, ClientSampleID,
                 ResultComments, Temperature, ShippingBatchID,
                 CollectMethod, MatrixID, DateCollected, Sampler,
                 TotalContainers, CoolerNumber, PreservationIntact,
@@ -42,38 +43,42 @@ def insert_mb_samples(data_to_create: dict) -> bool:
                 QCSample
             )
             SELECT 
-                LabReportingBatchID, 
+                (SELECT MAX(ItemID) +1 FROM Samples
+                WHERE LabReportingBatchID = ?
+                ),
+                s.LabReportingBatchID, 
                 ?,  -- inc_lab_sample_id
                 ?,  -- client_sample_id
-                ResultComments, 
-                Temperature, 
-                ShippingBatchID,              
-                CollectMethod, 
-                MatrixID, 
-                DateCollected, 
+                s.ResultComments, 
+                s.Temperature, 
+                s.ShippingBatchID,              
+                s.CollectMethod, 
+                s.MatrixID, 
+                s.DateCollected, 
                 'Lab QC',  -- Cambiar Sampler
-                TotalContainers, 
-                CoolerNumber, 
-                PreservationIntact,
-                CollectionAgency, 
-                CustodyIntactSeal, 
-                AdaptMatrixID,
-                ProgramType, 
-                CollectionMethod, 
-                SamplingDepth, 
-                LocationCode,
-                ProjectNumber, 
-                LabID, 
+                s.TotalContainers, 
+                s.CoolerNumber, 
+                s.PreservationIntact,
+                s.CollectionAgency, 
+                s.CustodyIntactSeal, 
+                s.AdaptMatrixID,
+                s.ProgramType, 
+                s.CollectionMethod, 
+                s.SamplingDepth, 
+                s.LocationCode,
+                s.ProjectNumber, 
+                s.LabID, 
                 1,  -- TagMB = 1 ( MB)
-                PercentMositure, 
-                DateAnalyzed,
+                s.PercentMositure, 
+                s.DateAnalyzed,
                 1   -- QCSample = 1 (is a QC)
-            FROM Samples
-            WHERE LabSampleID = ?  -- lab_sample_id_orig
+            FROM Samples s
+            WHERE s.LabSampleID = ?  -- lab_sample_id_orig
         """
         
         # Ejecutar con parámetros
         cursor.execute(query, (
+            data_to_create.get("work_order"),
             data_to_create.get("inc_lab_sample_id"),
             data_to_create.get("client_sample_id"),
             data_to_create.get("lab_sample_id_orig")
