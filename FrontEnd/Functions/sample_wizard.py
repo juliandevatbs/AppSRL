@@ -347,6 +347,7 @@ class SampleWizard:
         shipping_bath_id = self.shipping_id_entry.get().strip()
         cooler_number = self.cooler_number_entry.get().strip()
         temperature = self.temperature_entry.get().strip()
+        lab_id = self.lab_id_var.get().strip()  # ✅ Agregar esto
         
         # Crear el diccionario con todos los datos
         sample_data = {
@@ -356,7 +357,7 @@ class SampleWizard:
             'collection_agency': self.collection_agency_var.get(),
             'matrix': self.matrix_var.get(),
             'sampler': self.sampler_var.get(),
-            'quantity': quantity,  # Ya validado como int
+            'quantity': quantity,
             'sample_date': self.sample_date_var.get(),
             'sample_time': self.sample_time_var.get(),
             'date_collected_full': f"{self.sample_date_var.get()} {self.sample_time_var.get()}",
@@ -365,58 +366,59 @@ class SampleWizard:
             'cooler_number': cooler_number if cooler_number else None,
             'temperature': temperature if temperature else None,
             'adapt_matrix_id': self.adapt_matrix_var.get() if self.adapt_matrix_var.get() else None,
-            'total_containers': self.total_containers.get() if self.total_containers.get() else None
+            'total_containers': self.total_containers.get() if self.total_containers.get() else None,
+            'lab_id': lab_id 
         }
         
         return sample_data
     
-    def create_quantity_samples(self, batch_id, times: int, sample):
-
+    def create_quantity_samples(self, batch_id, times: int, sample_data: dict):
+        """
+        Crea múltiples muestras usando diccionarios
+        
+        Args:
+            batch_id: ID del batch
+            times: Cantidad de muestras a crear
+            sample_data: Diccionario con los datos de la muestra
+        
+        Returns:
+            bool: True si se insertó correctamente
+        """
         samples_to_create = []
         
-        for consecutive in range(1, times +1):
-            
+        for consecutive in range(1, times + 1):
             lab_sample_id = f"{batch_id}-{consecutive:03d}"
             
-            print(lab_sample_id)
+            # Crear diccionario para cada muestra
+            sample_dict = {
+                'ItemID': consecutive,
+                'LabSampleID': lab_sample_id,
+                'ClientSampleID': sample_data['client_sample_id'],
+                'CollectMethod': sample_data['collect_method'],
+                'CollectionAgency': sample_data['collection_agency'],
+                'MatrixID': sample_data['matrix'],
+                'Sampler': sample_data['sampler'],
+                'DateCollected': sample_data['date_collected_full'],
+                'ResultComments': sample_data['comments'],
+                'ShippingBatchID': sample_data['shipping_bath_id'],
+                'CoolerNumber': sample_data['cooler_number'],
+                'Temperature': sample_data['temperature'],
+                'AdaptMatrixID': sample_data['adapt_matrix_id'],
+                'TotalContainers': sample_data['total_containers'],
+                'LabID': sample_data.get('lab_id'),  # Valor por defecto
+                'LabReportingBatchID': batch_id
+            }
             
-            sample_list = []
             
-            for data_sample in sample.values():
-                sample_list.append(data_sample)
-            sample_list.insert(0, consecutive)
+            print(f"DICCIONARIO A CREAR {sample_dict}")
             
-            sample_list.append(lab_sample_id)
-            sample_list.append(0)
-            samples_to_create.append(sample_list)
-                
-        columns_to_insert = [
-                             "ItemID",
-                             "LabSampleID",
-                             "ClientSampleID",
-                             "CollectMethod",
-                             "CollectionAgency",
-                             "MatrixID",
-                             "Sampler",
-                             "DateCollected",
-                             "ResultComments",
-                             "ShippingBatchID",
-                             "CoolerNumber",
-                             "Temperature",
-                             "AdaptMatrixID",
-                             "TotalContainers",
-                             "LabID",
-                            "LabReportingBatchID"
-                            ]
-            
-        #print(columns_to_insert)
+            samples_to_create.append(sample_dict)
+            print(f"Created sample: {lab_sample_id}")
         
-        insert_samples(samples_to_create, columns_to_insert)
-      
-       
-        print(samples_to_create)
-        return columns_to_insert, samples_to_create
-     
+        # Insertar todas las muestras
+        success = insert_samples(samples_to_create)
+        
+        return success
 
     def validate_and_get_sample_data(self):
         """Valida los campos y retorna los datos del sample"""

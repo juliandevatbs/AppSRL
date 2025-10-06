@@ -225,36 +225,36 @@ class ReportTab(ttk.Frame):
         """Configurar campos de búsqueda"""
         
         # Work Order / LabReportingBatchID Selector
-        ttk.Label(search_frame, text="Work Order:").grid(row=0, column=0, padx=5, pady=5, sticky=tk.W)
+        ttk.Label(search_frame, text="Work Order:").grid(row=0, column=0, padx=2, pady=5, sticky=tk.W)
         self.work_order_combobox = ttk.Combobox(search_frame, width=25, state="readonly")
-        self.work_order_combobox.grid(row=0, column=1, padx=5, pady=5, sticky=tk.W)
+        self.work_order_combobox.grid(row=0, column=1, padx=2, pady=5, sticky=tk.W)
         self.work_order_combobox.bind('<<ComboboxSelected>>', self.on_work_order_selected)
         
         # LabSampleID
-        ttk.Label(search_frame, text="LabSampleID:").grid(row=0, column=4, padx=5, pady=5, sticky=tk.W)
+        ttk.Label(search_frame, text="LabSampleID:").grid(row=0, column=4, padx=2, pady=5, sticky=tk.W)
         self.lab_sample_id_entry = ttk.Combobox(search_frame, width=25, values=[], state="normal")
-        self.lab_sample_id_entry.grid(row=0, column=5, padx=5, pady=5, sticky=tk.W)
+        self.lab_sample_id_entry.grid(row=0, column=5, padx=2, pady=5, sticky=tk.W)
         self.lab_sample_id_entry.bind('<<ComboboxSelected>>', self.on_sample_id_selected)
         self.lab_sample_id_entry.bind('<KeyRelease>', self.on_sample_id_changed)
         
         #AnalyteName
-        ttk.Label(search_frame, text="Analyte Name:").grid(row=0, column=6, padx=5, pady=5, sticky=tk.W)
+        ttk.Label(search_frame, text="Analyte Name:").grid(row=0, column=6, padx=2, pady=5, sticky=tk.W)
         self.analyte_name_combobox = ttk.Combobox(search_frame, width=25, values=[], state="normal")
-        self.analyte_name_combobox.grid(row=0, column=7, padx=5, pady=5, sticky=tk.W)
+        self.analyte_name_combobox.grid(row=0, column=7, padx=2, pady=5, sticky=tk.W)
         self.analyte_name_combobox.bind('<<ComboboxSelected>>', self.on_analyte_name_selected)
         self.analyte_name_combobox.bind('<KeyRelease>', self.on_analyte_name_changed)
         
         #Analyte group ID
-        ttk.Label(search_frame, text="Analyte group ID:").grid(row=0, column=8, padx=5, pady=5, sticky=tk.W)
+        ttk.Label(search_frame, text="Analyte group ID:").grid(row=0, column=8, padx=2, pady=5, sticky=tk.W)
         self.analyte_group_combobox = ttk.Combobox(search_frame, width=25, values=[], state="disabled")  # ¡CORRECTO!
-        self.analyte_group_combobox.grid(row=0, column=9, padx=5, pady=5, sticky=tk.W)
+        self.analyte_group_combobox.grid(row=0, column=9, padx=2, pady=5, sticky=tk.W)
         self.analyte_group_combobox.bind('<<ComboboxSelected>>', self.on_analyte_group_selected)  # Evento correcto
         self.analyte_group_combobox.bind('<KeyRelease>', self.on_analyte_group_changed)
         
         # Botón View Data
         self.view_data_btn = ttk.Button(search_frame, text="View Data", style='Primary.TButton',
                                         command=self.view_data_wrapper, cursor="hand2", width=20)
-        self.view_data_btn.grid(row=0, column=10, padx=(25, 5), pady=5)
+        self.view_data_btn.grid(row=0, column=10, padx=2, pady=5)
         
         # Cargar work orders al iniciar
         self.load_work_orders()
@@ -594,7 +594,7 @@ class ReportTab(ttk.Frame):
         
         # Botón principal del menú
         self.actions_button = ttk.Button(parent_frame, text="☰ Actions", style='Primary.TButton', cursor="hand2", width=20)
-        self.actions_button.grid(row=0, column=11, padx=(40, 5), pady=5)
+        self.actions_button.grid(row=0, column=11, padx=2, pady=5)
         
         # Crear menú desplegable
         self.actions_menu = tk.Menu(parent_frame, tearoff=0, font=tkFont.Font(size=9))
