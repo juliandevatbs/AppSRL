@@ -30,7 +30,7 @@ def insert_mb_tests(data_to_create: dict) -> bool:
         # Query with params
         # Query with params
         query = """
-        INSERT INTO Sample_Tests (
+        INSERT INTO dbo.Sample_Tests (
         ItemID,
         ClientSampleID,
         LabAnalysisRefMethodID,
@@ -50,7 +50,7 @@ def insert_mb_tests(data_to_create: dict) -> bool:
     )
     VALUES (
         (SELECT MAX(ItemID) + 1 
-         FROM Sample_Tests 
+         FROM dbo.Sample_Tests 
          WHERE LabReportingBatchID = ?),
         ?,    -- ClientSampleID
         ?,    -- LabAnalysisRefMethodID
@@ -69,7 +69,9 @@ def insert_mb_tests(data_to_create: dict) -> bool:
         1
     )
         """
-        
+
+        print(f"SAMPLES PARA CREAR -> {data_to_create}")
+
         # Ejecutar con parámetros
         cursor.execute(query, (
             data_to_create.get("work_order"),

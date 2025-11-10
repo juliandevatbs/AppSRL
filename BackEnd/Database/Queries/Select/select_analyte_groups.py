@@ -28,7 +28,7 @@ def select_analyte_groups(batch_id):
         
         # Since we're selecting only one column, each result is a tuple with one element
         for result in results:
-            analyte_groups_list.append(result)  # This will be a tuple like ('Group1',)
+            analyte_groups_list.append(result[1])  # This will be a tuple like ('Group1',)
             
     except Exception as e:
         print(f"Error fetching analyte groups: {e}")

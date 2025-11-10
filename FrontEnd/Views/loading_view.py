@@ -150,15 +150,15 @@ class LoadingView:
                 time.sleep(0.3)
 
                 self.safe_update_progress(95, "Configuring components...")
-                if self.app_instance:
-                    self.root.after(0, self.app_instance.setup_main_interface)
+                """if self.app_instance:
+                    self.root.after(0, self.app_instance.setup_main_interface)"""
                 time.sleep(0.3)
 
                 # Efecto de completado con pausa
                 self.safe_update_progress(100, "Ready!")
                 time.sleep(0.8)
 
-                self.root.after(0, self.close_splash_and_show_main)
+                self.root.after(0, self.app_instance.close_splash_and_show_main)
 
             except Exception as e:
                 error_msg = f"Initialization error: {str(e)}"

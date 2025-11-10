@@ -43,7 +43,7 @@ def insert_mb_samples(data_to_create: dict) -> bool:
                 QCSample
             )
             SELECT 
-                (SELECT MAX(ItemID) +1 FROM Samples
+                (SELECT MAX(ItemID) +1 FROM dbo.Samples
                 WHERE LabReportingBatchID = ?
                 ),
                 s.LabReportingBatchID, 
@@ -72,9 +72,12 @@ def insert_mb_samples(data_to_create: dict) -> bool:
                 s.PercentMositure, 
                 s.DateAnalyzed,
                 1   -- QCSample = 1 (is a QC)
-            FROM Samples s
+            FROM dbo.Samples s
             WHERE s.LabSampleID = ?  -- lab_sample_id_orig
         """
+
+
+        print(f"SAMPLES PARA CREAR -> {data_to_create}")
         
         # Ejecutar con parámetros
         cursor.execute(query, (

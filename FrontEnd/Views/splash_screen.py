@@ -23,7 +23,7 @@ def create_splash_screen(self):
         # Título mejorado
         title_label = tk.Label(
             main_splash_frame, 
-            text="App", 
+            text="SRL",
             font=('Century Ghotic', 14, 'bold'),
             fg='white',
             bg='#2c3e50',

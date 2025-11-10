@@ -25,24 +25,31 @@ def select_last_labsampleid_by_wo(lab_reporting_batch_id: str, tbl: str):
         
         cursor = connection.cursor()
         
-        allowed_tables = ['Samples', 'SampleTests']
+        allowed_tables = ['dbo.Samples', 'dbo.Sample_Tests', 'Samples', 'Sample_Tests']
         if tbl not in allowed_tables:
             print(f"Error: Invalid table name '{tbl}'")
             return None
         
         # Construir query con nombre de tabla (NO usar parámetro aquí)
         query = f"""
+        
             SELECT TOP 1 LabSampleID 
             FROM {tbl}
             WHERE LabReportingBatchID = ?
             ORDER BY ItemID DESC
+            
         """
-        
+
+
+
+
         cursor.execute(query, (lab_reporting_batch_id,))
         result = cursor.fetchone()
         
         if result:
             return result[0]
+
+            print(f"ULTIMO LASTLABSAMPLE ID PARA INCREMENTAR {result[0]}")
         else:
             print(f"No samples found for batch: {lab_reporting_batch_id} in table {tbl}")
             return None

@@ -47,6 +47,8 @@ class SampleWizard:
         self.total_containers = tk.StringVar()
         self.lab_id_var = tk.StringVar()
         self.shipping_id_var = tk.StringVar()
+
+        self.refresh_callback = None
         
         
         # Datos para los comboboxes
@@ -61,6 +63,10 @@ class SampleWizard:
         
         self.setup_ui()
         self.load_data()
+
+    def set_refresh_callback(self, callback):
+        """Establece el callback para refrescar datos"""
+        self.refresh_callback = callback
         
     def setup_ui(self):
         """Configura la interfaz de usuario"""
@@ -351,7 +357,7 @@ class SampleWizard:
         
         # Crear el diccionario con todos los datos
         sample_data = {
-            'batch_id': self.last_batch_id + 1 if self.last_batch_id else 1,
+            'batch_id': self.last_batch_id ,
             'client_sample_id': self.client_sample_id_var.get().strip(),
             'collect_method': self.collect_method_var.get(),
             'collection_agency': self.collection_agency_var.get(),
@@ -530,6 +536,12 @@ class SampleWizard:
             
             # Mostrar confirmación con datos
             self.show_sample_confirmation(sample_data)
+
+            if self.refresh_callback:
+                self.refresh_callback()
+
+
+            self.refresh_report_tab_if_exists()
             
             # Preguntar si quiere crear otro sample
             result = messagebox.askyesno("Create Another?", 
@@ -552,6 +564,25 @@ class SampleWizard:
         except Exception as e:
             messagebox.showerror("Database Error", f"Error creating sample in database: {str(e)}")
             return False
+
+    def refresh_report_tab_if_exists(self):
+        """Refresca los datos en ReportTab si existe"""
+        try:
+            # Buscar ReportTab en la jerarquía de widgets
+            parent = self.window.master
+            while parent:
+                # Buscar el notebook principal
+                for widget in parent.winfo_children():
+                    if isinstance(widget, ttk.Notebook):
+                        # Buscar la tab de Report
+                        for tab_id in widget.tabs():
+                            tab = widget.nametowidget(tab_id)
+                            if hasattr(tab, 'refresh_current_data'):
+                                tab.refresh_current_data()
+                                return
+                parent = parent.master if hasattr(parent, 'master') else None
+        except Exception as e:
+            print(f"Could not refresh ReportTab: {e}")
             
     def cancel(self):
         """Cancela y cierra la ventana"""

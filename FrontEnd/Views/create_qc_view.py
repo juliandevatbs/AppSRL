@@ -22,7 +22,9 @@ sys.path.append(str(PROJECT_DIR))
 # ==================================================================== #
 #                     IMPORTS
 # ====================================================================
-from BackEnd.Processes.DataTypes.QC_creation.process_mb import process_mb
+from BackEnd.Processes.DataTypes.QC_creation import *
+from BackEnd.Processes.DataTypes.QC_creation.process_lcs import process_lcs
+from BackEnd.Processes.DataTypes.QC_creation.process_mb import  process_mb
 
 import tkinter as tk
 from tkinter import ttk, messagebox
@@ -54,6 +56,7 @@ class CreateQc:
         self.window.title("Create Quality Controls")
         self.window.geometry("550x700")
         self.window.resizable(False, False)
+        self.refresh_callback = None
         
         # Center window
         self.center_window()
@@ -71,6 +74,10 @@ class CreateQc:
         self.controls = ["MB", "LCS", "LCSD", "MS", "MSD"]
         
         self.setup_ui()
+
+    def set_refresh_callback(self, callback):
+        """Establece el callback para refrescar datos"""
+        self.refresh_callback = callback
     
     def center_window(self):
         """Center the window on screen"""
@@ -362,40 +369,29 @@ class CreateQc:
         send_data_to_process["analyte_name"] = self.analyte_name
         send_data_to_process["analyte_group_id"] = self.analyte_group_id
         send_data_to_process["client_sample_id"] = self.client_sample_id
+
+        for control in control_types:
+
+            try:
+
+                if control == 'MB':
+
+                    process_mb(send_data_to_process)
+
+                elif control == 'LCS':
+
+                    process_lcs(send_data_to_process)
+
+                else:
+                    return
+
+            except Exception as e:
+
+                print("No control selected")
+
+
         
-        process_mb(send_data_to_process)
-        
-        # TODO: Implement actual database insertion
-        # conn = None
-        # cursor = None
-        # try:
-        #     instance_db = DatabaseConnection()
-        #     conn = DatabaseConnection.get_conn(instance_db)
-        #     cursor = conn.cursor()
-        #     
-        #     for qc_type in control_types:
-        #         query = """
-        #             INSERT INTO QualityControls 
-        #             (WorkOrder, LabSampleID, AnalyteName, AnalyteGroupID, QCType)
-        #             VALUES (?, ?, ?, ?, ?)
-        #         """
-        #         cursor.execute(query, (self.work_order, self.lab_sample_id, 
-        #                               self.analyte_name, self.analyte_group_id, qc_type))
-        #     
-        #     conn.commit()
-        #     
-        # except Exception as e:
-        #     if conn:
-        #         conn.rollback()
-        #     raise e
-        # finally:
-        #     if cursor:
-        #         cursor.close()
-        #     if conn:
-        #         conn.close()
-        
-        import time
-        time.sleep(0.5)
+
 
 
 def show_create_qc_view(parent=None, work_order=None, lab_sample_id=None,

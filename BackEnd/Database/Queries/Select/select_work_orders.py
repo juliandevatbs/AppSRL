@@ -50,7 +50,7 @@ def select_work_orders():
         query = """
         
 
-            SELECT TOP 200 LabReportingBatchID FROM Samples ORDER BY LabReportingBatchID DESC;
+            SELECT TOP 100 LabReportingBatchID FROM Samples ORDER BY LabReportingBatchID DESC;
         
         
         

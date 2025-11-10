@@ -62,7 +62,7 @@ def get_all_sample_tests_data(batch_id=None):
         
         # 2. Obtener batch IDs
         query_batch_ids = """
-            SELECT DISTINCT  LabReportingBatchID 
+            SELECT DISTINCT TOP 100 LabReportingBatchID 
             FROM Samples 
             WHERE LabReportingBatchID IS NOT NULL
             ORDER BY LabReportingBatchID DESC;

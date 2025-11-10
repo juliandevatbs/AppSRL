@@ -402,8 +402,7 @@ class SampleTestsWizard:
         
         
         
-        # Aquí debes llamar a tu función de inserción
-        insert_sample_tests.insert_sample_tests(tests_to_create, columns_to_insert)
+        insert_sample_tests(tests_to_create, columns_to_insert)
         
         print("Tests to create:", tests_to_create)  # Para debugging
         return columns_to_insert, tests_to_create

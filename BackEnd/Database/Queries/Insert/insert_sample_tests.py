@@ -46,6 +46,8 @@ def insert_sample_tests(sample_tests: list, columns):
         column_names = ", ".join([f"[{col}]" for col in columns])
         insert_query = f"INSERT INTO [dbo].[{table_name}] ({column_names}) VALUES ({placeholders})"
 
+
+
         # Insert each data row
         for row_dict in sample_tests:
             print("ROW DICTTTTTTTTTTTTTTTTTTTTTT")

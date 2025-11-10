@@ -28,7 +28,7 @@ def select_analyte_names(batch_id):
         
         # Since we're selecting only one column, each result is a tuple with one element
         for result in results:
-            analyte_names_list.append(result)  # This will be a tuple like ('AnalyteName1',)
+            analyte_names_list.append(result[0])  # This will be a tuple like ('AnalyteName1',)
             
     except Exception as e:
         print(f"Error fetching analyte names: {e}")
