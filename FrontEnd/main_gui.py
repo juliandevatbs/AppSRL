@@ -124,7 +124,7 @@ class Main_Gui:
         
     def create_tabs(self):
         
-        self.report_tab = ReportTab(self.notebook, auto_load=False)
+        self.report_tab = ReportTab(self.notebook, auto_load=True)
         
         self.import_tab = ImportTab(self.notebook)
         

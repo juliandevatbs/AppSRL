@@ -1,5 +1,6 @@
 from pathlib import Path
 import sys
+import threading
 import tkinter as tk
 from tkinter import ttk
 from concurrent.futures import ThreadPoolExecutor
@@ -10,7 +11,6 @@ from BackEnd.Processes.DataFormatters.data_formatter import data_formatter
 from FrontEnd.Views.ReportTab.table_manager import TableManager
 from FrontEnd.Views.ReportTab.filter_manager import FilterManager
 from FrontEnd.Views.ReportTab.data_loader import DataLoader
-
 
 PROJECT_ROOT = Path(__file__).parent.parent.parent.parent.absolute()
 sys.path.insert(0, str(PROJECT_ROOT))
@@ -40,9 +40,10 @@ class ReportTab(ttk.Frame):
 
         self._setup_ui()
         self.filter_manager.set_view_data_callback(self.view_data_wrapper)
+        self.filter_manager.set_on_filters_ready_callback(self.on_filters_ready)
 
         if auto_load:
-            self.bind('<Visibility>', self._on_tab_visible, add='+')
+            self.after(100, self.initialize_data)
 
     def _setup_ui(self):
         self.status_label = ttk.Label(self, text="Ready - Use 'View Data' to load information")
@@ -59,74 +60,6 @@ class ReportTab(ttk.Frame):
 
         self._setup_tables(results_notebook)
         self._setup_action_buttons()
-
-    def _on_tab_visible(self, _):
-        if not self._load_started:
-            self._load_started = True
-            self.after(500, self._load_initial_data_async)
-
-    def _load_initial_data_async(self):
-        if self._load_in_progress or self._load_completed:
-            return
-
-        self._load_in_progress = True
-        self.update_status("Loading initial data...")
-
-        self.executor.submit(self._load_initial_data_background)
-
-    def _load_initial_data_background(self):
-        try:
-            self.instance_select_initial_data.load_connection()
-            filters = self.instance_select_initial_data.select_initial_data()
-            samples = self.instance_select_initial_data.select_sample_initial_data()
-            self.after(0, lambda: self._process_initial_data(filters, samples))
-        except Exception as ex:
-            self.after(0, lambda: self._handle_initial_data_error(f"Error loading initial data: {ex}"))
-        finally:
-            try:
-                self.instance_select_initial_data.close_connection()
-            except Exception:
-                pass
-
-    def _process_initial_data(self, filters, samples):
-        if not filters or not samples:
-            return self._handle_initial_data_error("No initial data found")
-
-        try:
-            self.filters_initial_data = data_formatter(filters, INITIAL_DATA_FILTERS)
-            self.sample_initial_data = data_formatter(samples, INITIAL_DATA_SAMPLE_TABLE)
-            self._load_filters_step_by_step()
-        except Exception as ex:
-            self._handle_initial_data_error(f"Error processing data: {ex}")
-
-    def _handle_initial_data_error(self, message):
-        self.update_status(message, error=True)
-        self._load_in_progress = False
-
-    def _load_filters_step_by_step(self):
-        steps = [
-            ("Loading work orders...", self.filter_manager.load_work_orders),
-            ("Initializing latest WO...", self.filter_manager.initialize_with_latest_wo),
-            ("Setting filters...", lambda: self.filter_manager.set_initial_data(self.filters_initial_data)),
-            ("Populating tables...", lambda: self.table_manager.set_initial_data(self.sample_initial_data, 'table1')),
-        ]
-
-        def execute_next_step(index=0):
-            if index >= len(steps):
-                self._load_in_progress = False
-                self._load_completed = True
-                self.update_status("Ready - Data loaded successfully")
-                return
-
-            msg, func = steps[index]
-            try:
-                self.update_status(msg)
-                func()
-                self.after(50, lambda: execute_next_step(index + 1))
-            except Exception as ex:
-                self._handle_initial_data_error(f"Error in {msg}: {ex}")
-
-        execute_next_step()
 
     def _setup_tables(self, notebook):
         def col(w, a, t, s=False): return {'width': w, 'anchor': a, 'text': t, 'stretch': s}
@@ -179,6 +112,86 @@ class ReportTab(ttk.Frame):
         self.table1.bind('<ButtonRelease-1>', lambda e: self._on_table_click(e, 'table1'))
         self.table2.bind('<ButtonRelease-1>', lambda e: self._on_table_click(e, 'table2'))
 
+    def initialize_data(self):
+        try:
+            self.update_status("Loading initial data...")
+            self.filter_manager.load_work_orders()
+        except Exception as e:
+            self.update_status(f"Error initializing data: {e}", error=True)
+
+    def on_filters_ready(self):
+        self.after(150, self.load_table_data)
+
+    def load_table_data(self):
+        if self._load_in_progress:
+            return
+        try:
+            batch_id, filters = self.filter_manager.view_data()
+            if not batch_id:
+                return
+            self._load_in_progress = True
+            self.update_status(f"Loading data for WO: {batch_id}...")
+            self._load_samples_and_tests_async(batch_id, filters)
+        except Exception as e:
+            self._load_in_progress = False
+            self.update_status(f"Error loading table data: {e}", error=True)
+
+    def _load_samples_and_tests_async(self, batch_id, filters):
+        """Cargar samples y tests usando DataLoader"""
+
+        def on_data_loaded(samples, tests, error):
+            if error:
+                self.update_status(f"Error: {error}", error=True)
+                self._set_load_done()
+                return
+
+            self._populate_tables(samples or [], tests or [])
+
+        # Esto ES asíncrono porque DataLoader crea el thread
+        self.data_loader.load_data_async(batch_id, filters, on_data_loaded)
+
+    def _populate_tables(self, samples, tests):
+        """Poblar las tablas con datos"""
+        try:
+            # Limpiar tablas
+            for child in self.table1.get_children():
+                self.table1.delete(child)
+            for child in self.table2.get_children():
+                self.table2.delete(child)
+
+            # Insertar samples
+            for row in samples:
+                try:
+                    if isinstance(row, (list, tuple)):
+                        self.table1.insert('', 'end', values=row)
+                    elif isinstance(row, dict):
+                        self.table1.insert('', 'end', values=tuple(row.values()))
+                except Exception as e:
+                    print(f"Error inserting sample: {e}")
+
+            # Insertar tests
+            for row in tests:
+                try:
+                    if isinstance(row, (list, tuple)):
+                        self.table2.insert('', 'end', values=row)
+                    elif isinstance(row, dict):
+                        self.table2.insert('', 'end', values=tuple(row.values()))
+                except Exception as e:
+                    print(f"Error inserting test: {e}")
+
+            # Actualizar status
+            self.data_loaded = True
+            self.update_status(f"Loaded {len(samples)} samples and {len(tests)} tests")
+
+        except Exception as e:
+            self.update_status(f"Error populating tables: {e}", error=True)
+        finally:
+            self._set_load_done()
+
+    def _set_load_done(self):
+        self._load_in_progress = False
+        self._load_completed = True
+
     def _on_table_click(self, event, table_name):
         result = self.table_manager.handle_checkbox_click(event, table_name)
         if result:
@@ -208,9 +221,9 @@ class ReportTab(ttk.Frame):
             ("Assign Data", self._show_assign_data)
         ]
         for label, cmd in actions:
-            if label == "-": 
+            if label == "-":
                 self.actions_menu.add_separator()
-            else: 
+            else:
                 self.actions_menu.add_command(label=label, command=cmd)
 
         self.actions_button.configure(command=lambda: self.actions_menu.post(
@@ -229,7 +242,7 @@ class ReportTab(ttk.Frame):
         self.update_status("Results cleared")
 
     def view_data_wrapper(self):
-        pass
+        self.load_table_data()
 
     def _generate_report_async(self):
         pass
@@ -248,4 +261,5 @@ class ReportTab(ttk.Frame):
 
     def load_initial_data_async(self):
         if not self._load_started:
-            self._load_initial_data_async()
+            self._load_started = True
+            self.initialize_data()

@@ -74,7 +74,7 @@ class SelectInitialData:
         
                 
                 SELECT 
-                    DISTINCT LabReportingBatchID 
+                    DISTINCT TOP 300 LabReportingBatchID 
                 FROM Samples
                 ORDER BY LabReportingBatchID DESC;
         
