@@ -30,7 +30,7 @@ def insert_samples(samples: list[dict]) -> bool:
         
         # Columnas
         columns = [
-            'ItemID', 'LabSampleID', 'ClientSampleID', 'CollectMethod',
+            'Include', 'ItemID', 'LabSampleID', 'ClientSampleID', 'CollectMethod',
             'CollectionAgency', 'MatrixID', 'Sampler', 'DateCollected',
             'ResultComments', 'ShippingBatchID', 'CoolerNumber', 'Temperature',
             'AdaptMatrixID', 'TotalContainers', 'LabID', 'LabReportingBatchID'

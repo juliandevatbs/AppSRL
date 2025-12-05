@@ -150,37 +150,60 @@ class ReportTab(ttk.Frame):
         # Esto ES asíncrono porque DataLoader crea el thread
         self.data_loader.load_data_async(batch_id, filters, on_data_loaded)
 
+
+    # This methods inserts the data that comes
     def _populate_tables(self, samples, tests):
-        """Poblar las tablas con datos"""
+
         try:
-            # Limpiar tablas
+            # Clean tables
             for child in self.table1.get_children():
+
                 self.table1.delete(child)
+
             for child in self.table2.get_children():
+
                 self.table2.delete(child)
 
-            # Insertar samples
+            # Insert sample data
             for row in samples:
+
                 try:
+
                     if isinstance(row, (list, tuple)):
-                        self.table1.insert('', 'end', values=row)
+
+                        values = ('☐',) + tuple(row)
+
                     elif isinstance(row, dict):
-                        self.table1.insert('', 'end', values=tuple(row.values()))
+
+                        values = ('☐',) + tuple(row.values())
+
+                    self.table1.insert('', 'end', values=values)
+
                 except Exception as e:
+
                     print(f"Error inserting sample: {e}")
 
-            # Insertar tests
+            # Insert sample tests
             for row in tests:
+
                 try:
+
                     if isinstance(row, (list, tuple)):
-                        self.table2.insert('', 'end', values=row)
+
+                        values=('☐',) + tuple(row)
+
                     elif isinstance(row, dict):
-                        self.table2.insert('', 'end', values=tuple(row.values()))
+
+                        values=('☐',) + tuple(row.values())
+
+                    self.table2.insert('', 'end', values=values)
+
                 except Exception as e:
                     print(f"Error inserting test: {e}")
 
-            # Actualizar status
+            # Update status
             self.data_loaded = True
+
             self.update_status(f"Loaded {len(samples)} samples and {len(tests)} tests")
 
         except Exception as e:
