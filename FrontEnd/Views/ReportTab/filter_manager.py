@@ -174,23 +174,39 @@ class FilterManager:
         self.widgets['analyte_group'].grid(row=5, column=col, padx=5, pady=(0, 5), sticky=tk.EW)
         col += 1
 
+
+        ################################################################################################################
+
         ttk.Label(parent, text="").grid(row=4, column=col, padx=5, pady=(5, 0), sticky=tk.EW)
-        self.widgets['clear_btn'] = ttk.Button(parent, text="Clear Filters", command=self.clear_filters, width=12)
+        self.widgets['clear_btn'] = ttk.Button(parent, text="New Login", command=self, width=20, cursor="hand2")
         self.widgets['clear_btn'].grid(row=5, column=col, padx=5, pady=(0, 5), sticky=tk.EW)
 
+        col +=1
+
         ttk.Label(parent, text="").grid(row=4, column=col, padx=5, pady=(5, 0), sticky=tk.EW)
+        self.widgets['clear_btn'] = ttk.Button(parent, text="Reporting", command=self, width=20, cursor="hand2")
+        self.widgets['clear_btn'].grid(row=5, column=col, padx=5, pady=(0, 5), sticky=tk.EW)
+
+
+
+
+
+
+
+
+        """ttk.Label(parent, text="").grid(row=4, column=col, padx=5, pady=(5, 0), sticky=tk.EW)
         self.widgets['create_sample'] = ttk.Button(parent, text="Create sample", command=self.clear_filters, width=12)
         self.widgets['create_sample'].grid(row=5, column=col, padx=5, pady=(0, 5), sticky=tk.EW)
-        col += 1
+        col += 1"""
 
-        ttk.Label(parent, text="").grid(row=4, column=col, padx=5, pady=(5, 0), sticky=tk.EW)
+        """ttk.Label(parent, text="").grid(row=4, column=col, padx=5, pady=(5, 0), sticky=tk.EW)
         self.widgets['view_btn'] = ttk.Button(parent, text="View Data", command=self.view_data, width=12)
         self.widgets['view_btn'].grid(row=5, column=col, padx=5, pady=(0, 5), sticky=tk.EW)
-        col += 1
+        col += 1"""
 
-        ttk.Label(parent, text="").grid(row=4, column=col, padx=5, pady=(5, 0), sticky=tk.EW)
+        """ttk.Label(parent, text="").grid(row=4, column=col, padx=5, pady=(5, 0), sticky=tk.EW)
         self.widgets['sample_tests_btn'] = ttk.Button(parent, text="Add Sample tests", command=self.view_data, width=12)
-        self.widgets['sample_tests_btn'].grid(row=5, column=col, padx=5, pady=(0, 5), sticky=tk.EW)
+        self.widgets['sample_tests_btn'].grid(row=5, column=col, padx=5, pady=(0, 5), sticky=tk.EW)"""
 
         for i in range(7):
             parent.columnconfigure(i, weight=1, uniform="col")
@@ -307,83 +323,197 @@ class FilterManager:
         thread.start()
 
     def update_filter_widgets(self, analyte_names, analyte_groups, sample_ids):
+
         if sample_ids:
+
             sample_ids = [str(item[0]) if isinstance(item, (tuple, list)) else str(item)
+
                           for item in sample_ids if item]
+
             unique_sample_ids = sorted(set(sample_ids))
-            self.widgets['LabSampleID']['values'] = unique_sample_ids
+
+
+            # All option to no filter values
+            self.widgets['LabSampleID']['values'] = ['All'] + unique_sample_ids
+
+            self.widgets['LabSampleID'].set('All')
+
         else:
-            self.widgets['LabSampleID']['values'] = []
+
+            self.widgets['LabSampleID']['values'] = ['All']
+
+            self.widgets['LabSampleID'].set('All')
 
         if analyte_names:
+
             analyte_names = [str(item[0]) if isinstance(item, (tuple, list)) else str(item)
+
                              for item in analyte_names if item]
+
             unique_analyte_names = sorted(set(analyte_names))
+
             self.widgets['analyte_name']['values'] = unique_analyte_names
+
+            # All option to no filter values
+            self.widgets['analyte_name']['values'] = ['All'] + unique_analyte_names
+
+            self.widgets['LabSampleID'].set('All')
+
+
             self.widgets['analyte_name'].config(state='readonly')
+
         else:
+
             self.widgets['analyte_name']['values'] = []
+
             self.widgets['analyte_name'].config(state='disabled')
 
+
         if analyte_groups:
+
             analyte_groups = [str(item[0]) if isinstance(item, (tuple, list)) else str(item)
+
                               for item in analyte_groups if item]
+
             unique_analyte_groups = sorted(set(analyte_groups))
+
             self.widgets['analyte_group']['values'] = unique_analyte_groups
+
+            # All option to no filter values
+            self.widgets['analyte_group']['values'] = ['All'] + unique_analyte_groups
+
+            self.widgets['LabSampleID'].set('All')
+
+
             self.widgets['analyte_group'].config(state='readonly')
+
         else:
+
             self.widgets['analyte_group']['values'] = []
+
             self.widgets['analyte_group'].config(state='disabled')
+
 
         self.status_callback("Analytes loaded successfully")
 
     def on_work_order_selected(self, event=None):
+
         selected_wo = self.widgets['LabReportingBatchID'].get()
+
         if selected_wo:
+
             self.status_callback(f"Work Order {selected_wo} selected")
+
             self.clear_filters(keep_work_order=True)
+
             self.load_data_by_wo(selected_wo)
+
             if self.filters_data:
+
                 self.set_initial_data(self.filters_data)
+
             else:
+
                 print("ERROR LOADING DATA, NO DATA SELECTED")
+
+            self.load_analytes_async(selected_wo)
+
         if self.view_data_callback:
+
             try:
+
                 self.view_data_callback()
+
             except Exception:
+
                 pass
 
     def on_sample_id_selected(self, event=None):
+
         selected_id = self.widgets['LabSampleID'].get()
-        if selected_id:
-            self.filters['LabSampleID'] = selected_id
-        elif 'LabSampleID' in self.filters:
+
+        if selected_id == 'All':
+
             del self.filters['LabSampleID']
 
+        elif selected_id:
+
+            self.filters['LabSampleID'] = selected_id
+
+        elif 'LabSampleID' in self.filters:
+
+            del self.filters['LabSampleID']
+
+        # Update data with the new filters
+        if self.view_data_callback:
+
+            self.view_data_callback()
+
     def on_analyte_name_selected(self, event=None):
+
         selected_name = self.widgets['analyte_name'].get()
-        if selected_name:
+
+        if selected_name == 'All':
+            if 'analyte_name' in self.filters:
+                del self.filters['analyte_name']
+
+        elif selected_name:
+
             self.filters['analyte_name'] = selected_name
+
         elif 'analyte_name' in self.filters:
+
             del self.filters['analyte_name']
 
+        if self.view_data_callback:
+
+            self.view_data_callback()
+
+
+
     def on_analyte_group_selected(self, event=None):
+
+
         selected_group = self.widgets['analyte_group'].get()
-        if selected_group:
+
+        if selected_group == 'All':
+
+            if 'analyte_group' in self.filters:
+
+                del self.filters['analyte_group']
+
+        elif selected_group:
+
             self.filters['analyte_group'] = selected_group
+
         elif 'analyte_group' in self.filters:
+
             del self.filters['analyte_group']
 
+        if self.view_data_callback:
+
+            self.view_data_callback()
+
     def clear_filters(self, keep_work_order=False):
+
         if not keep_work_order and 'LabReportingBatchID' in self.widgets:
+
             self.widgets['LabReportingBatchID'].set('')
+
         if 'LabSampleID' in self.widgets:
+
             self.widgets['LabSampleID'].set('')
+
         if 'analyte_name' in self.widgets:
+
             self.widgets['analyte_name'].set('')
+
         if 'analyte_group' in self.widgets:
+
             self.widgets['analyte_group'].set('')
+
         self.filters = {}
+
         self.status_callback("Filters cleared")
 
     def view_data(self):

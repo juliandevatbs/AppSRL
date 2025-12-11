@@ -50,7 +50,7 @@ class ReportTab(ttk.Frame):
         self.status_label.pack(side=tk.BOTTOM, fill=tk.X)
 
         filter_container, self.filter_frame = self.filter_manager.create_filter_frame(self)
-        self._create_actions_menu(self.filter_frame)
+        #self._create_actions_menu(self.filter_frame)
 
         results_frame = ttk.Frame(self)
         results_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
@@ -59,48 +59,48 @@ class ReportTab(ttk.Frame):
         results_notebook.pack(fill=tk.BOTH, expand=True)
 
         self._setup_tables(results_notebook)
-        self._setup_action_buttons()
+        #self._setup_action_buttons()
 
     def _setup_tables(self, notebook):
         def col(w, a, t, s=False): return {'width': w, 'anchor': a, 'text': t, 'stretch': s}
 
         table1_columns = {
-            'Include': col(150, tk.CENTER, 'Include'),
-            'itemID': col(150, tk.CENTER, 'itemID'),
-            'LabReportingBatchID': col(300, tk.CENTER, 'LabReportingBatchID'),
-            'LabSampleID': col(300, tk.W, 'LabSampleID'),
-            'ClientSampleID': col(400, tk.CENTER, 'ClientSampleID'),
-            'Sampler': col(400, tk.CENTER, 'Sampler'),
-            'Datecollected': col(400, tk.CENTER, 'Datecollected'),
-            'MatrixID': col(400, tk.CENTER, 'MatrixID'),
-            'Temperature': col(250, tk.CENTER, 'Temperature'),
-            'ShippingBatchID': col(300, tk.CENTER, 'ShippingBatchID'),
-            'CollectMethod': col(400, tk.CENTER, 'CollectMethod'),
-            'CollectionAgency': col(400, tk.CENTER, 'CollectionAgency'),
-            'AdaptMatrixID': col(400, tk.CENTER, 'AdaptMatrixID'),
-            'LabID': col(250, tk.CENTER, 'LabID'),
+            'Include': col(50, tk.CENTER, 'Include'),
+            'itemID': col(50, tk.CENTER, 'itemID'),
+            'LabReportingBatchID': col(150, tk.CENTER, 'LabReportingBatchID'),
+            'LabSampleID': col(150, tk.CENTER, 'LabSampleID'),
+            'ClientSampleID': col(200, tk.CENTER, 'ClientSampleID'),
+            'Sampler': col(200, tk.CENTER, 'Sampler'),
+            'Datecollected': col(200, tk.CENTER, 'Datecollected'),
+            'MatrixID': col(300, tk.CENTER, 'MatrixID'),
+            'Temperature': col(50, tk.CENTER, 'Temperature'),
+            'ShippingBatchID': col(150, tk.CENTER, 'ShippingBatchID'),
+            'CollectMethod': col(50, tk.CENTER, 'CollectMethod'),
+            'CollectionAgency': col(200, tk.CENTER, 'CollectionAgency'),
+            'AdaptMatrixID': col(100, tk.CENTER, 'AdaptMatrixID'),
+            'LabID': col(150, tk.CENTER, 'LabID'),
         }
 
         table2_columns = {
-            'Include': col(120, tk.CENTER, 'Include'),
-            'SampleTestsID': col(300, tk.CENTER, 'SampleTestsID'),
-            'ClientSampleID': col(400, tk.CENTER, 'ClientSampleID'),
-            'LabAnalysisRefMethodID': col(400, tk.CENTER, 'LabAnalysisRefMethodID'),
-            'LabSampleID': col(300, tk.W, 'LabSampleID'),
-            'AnalyteName': col(400, tk.CENTER, 'AnalyteName'),
-            'Result': col(250, tk.CENTER, 'Result'),
-            'ResultUnits': col(300, tk.CENTER, 'ResultUnits'),
-            'DetectionLimit': col(250, tk.CENTER, 'DetectionLimit'),
-            'Dilution': col(250, tk.CENTER, 'Dilution'),
-            'ReportingLimit': col(250, tk.CENTER, 'ReportingLimit'),
-            'ProjectName': col(350, tk.CENTER, 'ProjectName'),
-            'DateCollected': col(400, tk.CENTER, 'DateCollected'),
-            'MatrixID': col(300, tk.CENTER, 'MatrixID'),
-            'AnalyteType': col(300, tk.CENTER, 'AnalyteType'),
-            'LabReportingBatchID': col(400, tk.CENTER, 'LabReportingBatchID'),
-            'Notes': col(400, tk.CENTER, 'Notes', s=True),
-            'Sampler': col(400, tk.CENTER, 'Sampler'),
-            'Analyst': col(400, tk.CENTER, 'Analyst'),
+            'Include': col(50, tk.CENTER, 'Include'),
+            'SampleTestsID': col(150, tk.CENTER, 'SampleTestsID'),
+            'ClientSampleID': col(200, tk.CENTER, 'ClientSampleID'),
+            'LabAnalysisRefMethodID': col(300, tk.CENTER, 'LabAnalysisRefMethodID'),
+            'LabSampleID': col(300, tk.CENTER, 'LabSampleID'),
+            'AnalyteName': col(250, tk.CENTER, 'AnalyteName'),
+            'Result': col(150, tk.CENTER, 'Result'),
+            'ResultUnits': col(150, tk.CENTER, 'ResultUnits'),
+            'DetectionLimit': col(150, tk.CENTER, 'DetectionLimit'),
+            'Dilution': col(150, tk.CENTER, 'Dilution'),
+            'ReportingLimit': col(150, tk.CENTER, 'ReportingLimit'),
+            'ProjectName': col(150, tk.CENTER, 'ProjectName'),
+            'DateCollected': col(200, tk.CENTER, 'DateCollected'),
+            'MatrixID': col(150, tk.CENTER, 'MatrixID'),
+            'AnalyteType': col(150, tk.CENTER, 'AnalyteType'),
+            'LabReportingBatchID': col(200, tk.CENTER, 'LabReportingBatchID'),
+            'Notes': col(200, tk.CENTER, 'Notes', s=True),
+            'Sampler': col(200, tk.CENTER, 'Sampler'),
+            'Analyst': col(200, tk.CENTER, 'Analyst'),
         }
 
         t1_frame, self.table1 = self.table_manager.create_table(notebook, 'table1', table1_columns)
@@ -147,7 +147,7 @@ class ReportTab(ttk.Frame):
 
             self._populate_tables(samples or [], tests or [])
 
-        # Esto ES asíncrono porque DataLoader crea el thread
+        # Esto es asíncrono porque DataLoader crea el thread
         self.data_loader.load_data_async(batch_id, filters, on_data_loaded)
 
 
@@ -155,7 +155,9 @@ class ReportTab(ttk.Frame):
     def _populate_tables(self, samples, tests):
 
         try:
+
             # Clean tables
+
             for child in self.table1.get_children():
 
                 self.table1.delete(child)
@@ -221,16 +223,16 @@ class ReportTab(ttk.Frame):
             lab_sample_id, action = result
             self.update_status(f"Sample {action}: {lab_sample_id}")
 
-    def _setup_action_buttons(self):
+    """def _setup_action_buttons(self):
         frame = ttk.Frame(self)
         frame.pack(fill=tk.X, padx=5, pady=5)
 
         self.report_btn = ttk.Button(frame, text="Generate Report", command=self._generate_report_async)
         self.report_btn.pack(side=tk.LEFT, padx=5)
 
-        ttk.Button(frame, text="Clear Results", command=self._clear_results).pack(side=tk.RIGHT, padx=5)
+        ttk.Button(frame, text="Clear Results", command=self._clear_results).pack(side=tk.RIGHT, padx=5)"""
 
-    def _create_actions_menu(self, parent):
+    """def _create_actions_menu(self, parent):
         import tkinter.font as tkFont
         self.actions_button = ttk.Button(parent, text="☰ Actions", cursor="hand2", width=20)
         self.actions_button.grid(row=1, column=12, padx=2)
@@ -252,7 +254,7 @@ class ReportTab(ttk.Frame):
         self.actions_button.configure(command=lambda: self.actions_menu.post(
             self.actions_button.winfo_rootx(),
             self.actions_button.winfo_rooty() + self.actions_button.winfo_height()
-        ))
+        ))"""
 
     def update_status(self, message, error=False):
         self.status_label.config(text=message, foreground='red' if error else 'black')
