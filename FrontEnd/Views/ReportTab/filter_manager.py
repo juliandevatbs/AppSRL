@@ -3,16 +3,22 @@ import tkinter as tk
 from tkinter import ttk
 
 from BackEnd.Config.fields import INITIAL_DATA_FILTERS
+from BackEnd.Database.Queries.Insert.CreateNewLoginWithSample import CreateNewLoginWithSample
+from BackEnd.Database.Queries.Insert.InsertSample import InsertSample
+from BackEnd.Database.Queries.Insert.InsertSampleTest import InsertSampleTest
 from BackEnd.Database.Queries.Select.SelectDataByWo import SelectDataByWo
 from BackEnd.Database.Queries.Select.SelectInitialData import SelectInitialData
 from BackEnd.Database.Queries.Select.select_analyte_names import select_analyte_names
 from BackEnd.Database.Queries.Select.select_analyte_groups import select_analyte_groups
 from BackEnd.Database.Queries.Filters.filter_queries import filter_queries
 from BackEnd.Processes.DataFormatters.data_formatter import tuple_to_readable, data_formatter
+from FrontEnd.Views.SampleWizard.NewLoginDialog import NewLoginDialog
 
 
 class FilterManager:
+    
     def __init__(self, parent, status_callback):
+        
         self.parent = parent
         self.status_callback = status_callback
         self.filters = {}
@@ -26,6 +32,98 @@ class FilterManager:
         self.filters_data = None
         self.work_orders = None
         self.latest_work_order = None
+        
+        self.create_login_sample_instance = CreateNewLoginWithSample()
+        
+        
+    
+    def get_client_data_by_project(self, project_name):
+        
+        try:
+            
+            self.selecte_initial_data_instance.load_connection()
+            client_data = self.selecte_initial_data_instance.select_last_login_by_project(project_name)
+            return client_data
+
+        except Exception as e:
+            
+            print(f"Error loading client data {e}")
+            return None
+
+        finally:
+            
+            try:
+                
+                self.selecte_initial_data_instance.close_connection()
+            
+            except: 
+                
+                pass
+    
+        
+    
+    def get_project_names(self):
+        
+        try: 
+            
+            self.selecte_initial_data_instance.load_connection()
+            projects = self.selecte_initial_data_instance.select_project_names()
+            
+            return tuple_to_readable(projects) if projects else []
+        
+        except Exception as e:
+            
+            print(f"Error loading projects {e}")
+            return []
+        
+        finally:
+            
+            try:
+                
+                self.selecte_initial_data_instance.close_connection()
+            
+            except:
+                
+                pass
+        
+    
+    def _on_new_login_created(self, login_data):
+        
+        if not login_data:
+            
+            return
+        
+        self.status_callback("Creating new login....")
+        
+        
+        def worker():
+            
+            try:
+                
+                new_wo = self.create_login_sample_instance.create_login_and_sample(login_data)
+                self.parent.after(0, lambda: self._on_login_created_success(new_wo))
+            
+            except Exception as e:
+                
+                self.parent.after(0, lambda: self.status_callback(f"Error: {str(e)}" , True))
+        
+        threading.Thread(target=worker, daemon=True).start()
+        
+    def _on_login_created_success(self, new_wo):
+        
+        self.status_callback(f"Login created succesfully! Work Order: {new_wo}")
+        
+        # Reload work orders
+        self.load_work_orders()
+        
+        #Selecte the new wo 
+        self.parent.after(1000, lambda: self._select_new_wo(str(new_wo)))
+    
+    def open_new_login_dialog(self):
+        
+        project_names = self.get_project_names()
+        NewLoginDialog(self.parent, project_names, self._on_new_login_created, self.get_client_data_by_project)
+    
 
     def set_on_filters_ready_callback(self, callback):
         self.on_filters_ready_callback = callback
@@ -178,8 +276,8 @@ class FilterManager:
         ################################################################################################################
 
         ttk.Label(parent, text="").grid(row=4, column=col, padx=5, pady=(5, 0), sticky=tk.EW)
-        self.widgets['clear_btn'] = ttk.Button(parent, text="New Login", command=self, width=20, cursor="hand2")
-        self.widgets['clear_btn'].grid(row=5, column=col, padx=5, pady=(0, 5), sticky=tk.EW)
+        self.widgets['new_login_btn'] = ttk.Button(parent, text="New Login", command=self.open_new_login_dialog, width=20, cursor="hand2")
+        self.widgets['new_login_btn'].grid(row=5, column=col, padx=5, pady=(0, 5), sticky=tk.EW)
 
         col +=1
 
@@ -187,6 +285,30 @@ class FilterManager:
         self.widgets['clear_btn'] = ttk.Button(parent, text="Reporting", command=self, width=20, cursor="hand2")
         self.widgets['clear_btn'].grid(row=5, column=col, padx=5, pady=(0, 5), sticky=tk.EW)
 
+        col +=1
+        
+        ttk.Label(parent, text="").grid(row=4, column=col, padx=5, pady=(5, 0), sticky=tk.EW)
+        self.widgets['add_sample_btn'] = ttk.Button(
+            parent, 
+            text="Add Sample", 
+            command=self.add_sample, 
+            width=20, 
+            cursor="hand2"
+        )
+        self.widgets['add_sample_btn'].grid(row=5, column=col, padx=5, pady=(0, 5), sticky=tk.EW)
+        col += 1
+
+        ttk.Label(parent, text="").grid(row=4, column=col, padx=5, pady=(5, 0), sticky=tk.EW)
+        self.widgets['add_test_btn'] = ttk.Button(
+            parent, 
+            text="Add Sample Test", 
+            command=self.add_sample_test, 
+            width=20, 
+            cursor="hand2"
+        )
+        self.widgets['add_test_btn'].grid(row=5, column=col, padx=5, pady=(0, 5), sticky=tk.EW)
+        col += 1
+        
 
 
 
@@ -215,29 +337,38 @@ class FilterManager:
         self.widgets['LabSampleID'].bind('<<ComboboxSelected>>', self.on_sample_id_selected)
         self.widgets['analyte_name'].bind('<<ComboboxSelected>>', self.on_analyte_name_selected)
         self.widgets['analyte_group'].bind('<<ComboboxSelected>>', self.on_analyte_group_selected)
+    
+    
+    def add_sample(self):
+        """Llama al método add_new_sample del ReportTab"""
+        if hasattr(self.parent, 'add_new_sample'):
+            self.parent.add_new_sample()
+        else:
+            print("Error: ReportTab doesn't have add_new_sample method")
+
+
+    def add_sample_test(self):
+        """Llama al método add_new_sample_test del ReportTab"""
+        if hasattr(self.parent, 'add_new_sample_test'):
+            self.parent.add_new_sample_test()
+        else:
+            print("Error: ReportTab doesn't have add_new_sample_test method")
 
     def load_work_orders(self):
-        print("=== [1] load_work_orders INICIO ===")
 
         def load():
-            print("=== [2] Thread iniciado ===")
             try:
-                print("=== [3] Conectando a BD ===")
                 self.selecte_initial_data_instance.load_connection()
 
-                print("=== [4] Ejecutando query ===")
                 self.work_orders = tuple_to_readable(
                     self.selecte_initial_data_instance.select_work_orders()
                 )
 
-                print(f"=== [5] Work orders obtenidos: {self.work_orders} ===")
 
                 if self.work_orders:
-                    self.latest_work_order = self.work_orders[-1]
-                    print(f"=== [6] Latest WO: {self.latest_work_order} ===")
+                    self.latest_work_order = self.work_orders[0]
 
             except Exception as e:
-                print(f"=== [ERROR en thread] {e} ===")
                 import traceback
                 traceback.print_exc()
 

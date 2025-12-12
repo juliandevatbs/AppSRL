@@ -83,6 +83,31 @@ class SelectInitialData:
         
         
         """
+    
+    def select_project_names(self):
+        
+        query = """
+        
+            SELECT DISTINCT ProjectName FROM Sample_Login WHERE ProjectName IS NOT NULL
+            ORDER BY ProjectName
+        
+        """
+        
+        self.cursor.execute(query)
+        
+        return self.cursor.fetchall()
+
+    def select_last_login_by_project(self, project_name):
+        """Obtiene el último login de un proyecto específico"""
+        query = """
+            SELECT TOP 1
+                Contact, Phone, Email, Address_1, City, State_Prov, Postal_Code, ProjectLocation
+            FROM Sample_Login
+            WHERE ProjectName = ?
+            ORDER BY LabReportingBatchID DESC
+        """
+        self.cursor.execute(query, (project_name,))
+        return self.cursor.fetchone()
 
     def load_connection(self):
 
