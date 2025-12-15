@@ -282,8 +282,8 @@ class FilterManager:
         col +=1
 
         ttk.Label(parent, text="").grid(row=4, column=col, padx=5, pady=(5, 0), sticky=tk.EW)
-        self.widgets['clear_btn'] = ttk.Button(parent, text="Reporting", command=self, width=20, cursor="hand2")
-        self.widgets['clear_btn'].grid(row=5, column=col, padx=5, pady=(0, 5), sticky=tk.EW)
+        self.widgets['reporting_btn'] = ttk.Button(parent, text="Reporting", command=self, width=20, cursor="hand2")
+        self.widgets['reporting_btn'].grid(row=5, column=col, padx=5, pady=(0, 5), sticky=tk.EW)
 
         col +=1
         

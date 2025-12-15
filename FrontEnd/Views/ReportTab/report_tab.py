@@ -150,7 +150,6 @@ class ReportTab(ttk.Frame):
             'ProgramType'
         ]
         
-        # Define qué columnas son editables en Sample Tests
         editable_cols_table2 = [
             'Result',
             'ResultUnits',
