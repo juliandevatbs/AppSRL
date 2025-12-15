@@ -6,6 +6,7 @@ from BackEnd.Config.fields import INITIAL_DATA_FILTERS
 from BackEnd.Database.Queries.Insert.CreateNewLoginWithSample import CreateNewLoginWithSample
 from BackEnd.Database.Queries.Insert.InsertSample import InsertSample
 from BackEnd.Database.Queries.Insert.InsertSampleTest import InsertSampleTest
+from BackEnd.Database.Queries.Insert.QualityControls.InsertQualityControl import InsertQualityControl
 from BackEnd.Database.Queries.Select.SelectDataByWo import SelectDataByWo
 from BackEnd.Database.Queries.Select.SelectInitialData import SelectInitialData
 from BackEnd.Database.Queries.Select.select_analyte_names import select_analyte_names
@@ -34,6 +35,7 @@ class FilterManager:
         self.latest_work_order = None
         
         self.create_login_sample_instance = CreateNewLoginWithSample()
+        self.insert_qc = InsertQualityControl()
         
         
     
@@ -281,35 +283,38 @@ class FilterManager:
 
         col +=1
 
-        ttk.Label(parent, text="").grid(row=4, column=col, padx=5, pady=(5, 0), sticky=tk.EW)
+        """ttk.Label(parent, text="").grid(row=4, column=col, padx=5, pady=(5, 0), sticky=tk.EW)
         self.widgets['reporting_btn'] = ttk.Button(parent, text="Reporting", command=self, width=20, cursor="hand2")
-        self.widgets['reporting_btn'].grid(row=5, column=col, padx=5, pady=(0, 5), sticky=tk.EW)
-
-        col +=1
+        self.widgets['reporting_btn'].grid(row=5, column=col, padx=5, pady=(0, 5), sticky=tk.EW)"""
+        
+        # MENÚ DESPLEGABLE DE QC
+        ttk.Label(parent, text="").grid(row=4, column=col, padx=5, pady=(5, 0), sticky=tk.EW)
+        self.widgets['qc_menu_btn'] = ttk.Button(
+            parent, text="☰ Quality Controls", 
+            cursor="hand2", 
+            width=20
+        )
+        self.widgets['qc_menu_btn'].grid(row=5, column=col, padx=5, pady=(0, 5), sticky=tk.EW)
+        self._create_qc_menu(parent)
+        col += 1
         
         ttk.Label(parent, text="").grid(row=4, column=col, padx=5, pady=(5, 0), sticky=tk.EW)
         self.widgets['add_sample_btn'] = ttk.Button(
-            parent, 
-            text="Add Sample", 
+            parent, text="Add Sample", 
             command=self.add_sample, 
-            width=20, 
-            cursor="hand2"
+            width=20, cursor="hand2"
         )
         self.widgets['add_sample_btn'].grid(row=5, column=col, padx=5, pady=(0, 5), sticky=tk.EW)
         col += 1
 
         ttk.Label(parent, text="").grid(row=4, column=col, padx=5, pady=(5, 0), sticky=tk.EW)
         self.widgets['add_test_btn'] = ttk.Button(
-            parent, 
-            text="Add Sample Test", 
+            parent, text="Add Sample Test", 
             command=self.add_sample_test, 
-            width=20, 
-            cursor="hand2"
+            width=20, cursor="hand2"
         )
         self.widgets['add_test_btn'].grid(row=5, column=col, padx=5, pady=(0, 5), sticky=tk.EW)
         col += 1
-        
-
 
 
 
@@ -338,6 +343,56 @@ class FilterManager:
         self.widgets['analyte_name'].bind('<<ComboboxSelected>>', self.on_analyte_name_selected)
         self.widgets['analyte_group'].bind('<<ComboboxSelected>>', self.on_analyte_group_selected)
     
+    
+    def _create_qc_menu(self, parent):
+        """Crea el menú desplegable de Quality Controls"""
+        import tkinter.font as tkFont
+        
+        self.qc_menu = tk.Menu(parent, tearoff=0, font=tkFont.Font(size=9))
+        
+        # Las opciones del menú ahora llaman a métodos del parent (ReportTab)
+        qc_options = [
+            ("Create Method Blank (MB)", self._call_parent_create_mb),
+            ("Create LCS/LCSD Pair", self._call_parent_create_lcs),
+            ("-", None),
+            ("Create Matrix Spike (MS/MSD)", self._call_parent_create_ms),
+        ]
+        
+        for label, cmd in qc_options:
+            if label == "-":
+                self.qc_menu.add_separator()
+            else:
+                self.qc_menu.add_command(label=label, command=cmd)
+        
+        # Configurar el botón para mostrar el menú
+        self.widgets['qc_menu_btn'].configure(command=lambda: self.qc_menu.post(
+            self.widgets['qc_menu_btn'].winfo_rootx(),
+            self.widgets['qc_menu_btn'].winfo_rooty() + self.widgets['qc_menu_btn'].winfo_height()
+        ))
+
+
+    def _call_parent_create_mb(self):
+        """Llama al método create_method_blank del ReportTab"""
+        if hasattr(self.parent, 'create_method_blank'):
+            self.parent.create_method_blank()
+        else:
+            print("Error: ReportTab doesn't have create_method_blank method")
+
+
+    def _call_parent_create_lcs(self):
+        """Llama al método create_lcs_pair del ReportTab"""
+        if hasattr(self.parent, 'create_lcs_pair'):
+            self.parent.create_lcs_pair()
+        else:
+            print("Error: ReportTab doesn't have create_lcs_pair method")
+
+
+    def _call_parent_create_ms(self):
+        """Llama al método create_matrix_spike_pair del ReportTab"""
+        if hasattr(self.parent, 'create_matrix_spike_pair'):
+            self.parent.create_matrix_spike_pair()
+        else:
+            print("Error: ReportTab doesn't have create_matrix_spike_pair method")
     
     def add_sample(self):
         """Llama al método add_new_sample del ReportTab"""

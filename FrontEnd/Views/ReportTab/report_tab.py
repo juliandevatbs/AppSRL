@@ -8,6 +8,7 @@ from concurrent.futures import ThreadPoolExecutor
 from BackEnd.Config.fields import INITIAL_DATA_FILTERS, INITIAL_DATA_SAMPLE_TABLE
 from BackEnd.Database.Queries.Insert.InsertSample import InsertSample
 from BackEnd.Database.Queries.Insert.InsertSampleTest import InsertSampleTest
+from BackEnd.Database.Queries.Insert.QualityControls.InsertQualityControl import InsertQualityControl
 from BackEnd.Database.Queries.Select.SelectInitialData import SelectInitialData
 from BackEnd.Database.Queries.Updates.UpdateSample import UpdateSample
 from BackEnd.Database.Queries.Updates.UpdateSampleTest import UpdateSampleTest
@@ -52,6 +53,7 @@ class ReportTab(ttk.Frame):
         
         self.insert_sample =  InsertSample()
         self.insert_sample_test = InsertSampleTest()
+        self.insert_qc = InsertQualityControl()
     
 
     def _setup_ui(self):
@@ -179,6 +181,162 @@ class ReportTab(ttk.Frame):
             on_edit_callback=self._on_table2_edit,
             editable_columns=editable_cols_table2
         )
+        
+    
+    def _get_selected_wo_and_sample(self):
+        """Obtiene el WO y Sample seleccionados del FilterManager"""
+        wo = self.filter_manager.widgets.get('LabReportingBatchID')
+        sample = self.filter_manager.widgets.get('LabSampleID')
+        
+        if not wo or not sample:
+            return None, None
+        
+        wo_value = wo.get().strip()
+        sample_value = sample.get().strip()
+        
+        if not wo_value:
+            return None, None
+        
+        try:
+            wo_int = int(wo_value)
+        except ValueError:
+            return None, None
+        
+        return wo_int, sample_value if sample_value != 'All' else None
+
+
+    def create_method_blank(self):
+        """Crear Method Blank"""
+        wo, selected_sample = self._get_selected_wo_and_sample()
+        
+        if not wo:
+            self.update_status("Error: Please select a Work Order", error=True)
+            return
+        
+        if not selected_sample or selected_sample == 'All':
+            self.update_status("Error: Please select a specific LabSampleID as reference", error=True)
+            return
+        
+        self.update_status(f"Creating Method Blank using {selected_sample}...")
+        
+        def worker():
+            try:
+                self.insert_qc.load_connection()
+                mb_id = self.insert_qc.create_method_blank(selected_sample)
+                self.after(0, lambda id=mb_id: self._on_qc_created(id, "Method Blank"))
+            except Exception as e:
+                error_msg = str(e)
+                self.after(0, lambda msg=error_msg: self.update_status(f"Error: {msg}", error=True))
+            finally:
+                try:
+                    self.insert_qc.close_conn()
+                except:
+                    pass
+        
+        threading.Thread(target=worker, daemon=True).start()
+
+
+    def create_lcs_pair(self):
+        """Crear par LCS/LCSD"""
+        wo, selected_sample = self._get_selected_wo_and_sample()
+        
+        if not wo:
+            self.update_status("Error: Please select a Work Order", error=True)
+            return
+        
+        if not selected_sample or selected_sample == 'All':
+            self.update_status("Error: Please select a specific LabSampleID as reference", error=True)
+            return
+        
+        self.update_status(f"Creating LCS/LCSD using {selected_sample}...")
+        
+        def worker():
+            try:
+                self.insert_qc.load_connection()
+                lcs_id, lcsd_id = self.insert_qc.create_lcs_pair(selected_sample)
+                self.after(0, lambda ids=(lcs_id, lcsd_id): self._on_qc_created(ids, "LCS/LCSD"))
+            except Exception as e:
+                error_msg = str(e)
+                self.after(0, lambda msg=error_msg: self.update_status(f"Error: {msg}", error=True))
+            finally:
+                try:
+                    self.insert_qc.close_conn()
+                except:
+                    pass
+        
+        threading.Thread(target=worker, daemon=True).start()
+
+
+    def create_matrix_spike_pair(self):
+        """Crear par MS/MSD"""
+        wo, selected_sample = self._get_selected_wo_and_sample()
+        
+        if not wo:
+            self.update_status("Error: Please select a Work Order", error=True)
+            return
+        
+        if not selected_sample or selected_sample == 'All':
+            self.update_status("Error: Please select a specific LabSampleID for MS/MSD", error=True)
+            return
+        
+        self.update_status(f"Creating MS/MSD for {selected_sample}...")
+        
+        def worker():
+            try:
+                self.insert_qc.load_connection()
+                ms_id, msd_id = self.insert_qc.create_matrix_spike_pair(selected_sample)
+                self.after(0, lambda ids=(ms_id, msd_id): self._on_qc_created(ids, "MS/MSD"))
+            except Exception as e:
+                error_msg = str(e)
+                self.after(0, lambda msg=error_msg: self.update_status(f"Error: {msg}", error=True))
+            finally:
+                try:
+                    self.insert_qc.close_conn()
+                except:
+                    pass
+        
+        threading.Thread(target=worker, daemon=True).start()
+
+
+    def _on_qc_created(self, qc_ids, qc_type):
+        """
+        Callback cuando se crea uno o más QC samples
+        
+        Args:
+            qc_ids: Puede ser un string (para MB) o una tupla/lista (para pares LCS/LCSD o MS/MSD)
+            qc_type: Tipo de QC creado ('Method Blank', 'LCS/LCSD', 'MS/MSD')
+        """
+        try:
+            # Formatear el mensaje según el tipo de QC
+            if isinstance(qc_ids, (tuple, list)):
+                # Es un par (LCS/LCSD o MS/MSD)
+                qc_list = ", ".join(qc_ids)
+                message = f"✓ {qc_type} pair created: {qc_list}"
+            else:
+                # Es un QC individual (MB)
+                message = f"✓ {qc_type} created: {qc_ids}"
+            
+            self.update_status(f"{message}. Reloading data...")
+            
+            # Obtener el Work Order actual
+            work_order = self.filter_manager.widgets.get('LabReportingBatchID')
+            if work_order:
+                wo_value = work_order.get().strip()
+                try:
+                    wo_int = int(wo_value)
+                    # Recargar los analitos para actualizar los dropdowns
+                    self.filter_manager.load_analytes_async(wo_int)
+                except ValueError:
+                    pass
+            
+            # Recargar las tablas después de un delay para mostrar el nuevo QC
+            self.after(500, self.load_table_data)
+            
+        except Exception as e:
+            print(f"Error in _on_qc_created: {e}")
+            import traceback
+            traceback.print_exc()
+            self.update_status(f"QC created but error reloading: {e}", error=True)
     
     def add_new_sample(self):
         """
