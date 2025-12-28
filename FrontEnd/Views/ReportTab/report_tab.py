@@ -115,10 +115,10 @@ class ReportTab(ttk.Frame):
         }
 
         t1_frame, self.table1 = self.table_manager.create_table(notebook, 'table1', table1_columns)
-        notebook.add(t1_frame, text="Sample Data")
+        notebook.add(t1_frame, text="Samples")
 
         t2_frame, self.table2 = self.table_manager.create_table(notebook, 'table2', table2_columns)
-        notebook.add(t2_frame, text="Sample Tests")
+        notebook.add(t2_frame, text="Tests")
 
         self.table1.bind('<ButtonRelease-1>', lambda e: self._on_table_click(e, 'table1'))
         self.table2.bind('<ButtonRelease-1>', lambda e: self._on_table_click(e, 'table2'))
@@ -181,6 +181,120 @@ class ReportTab(ttk.Frame):
             on_edit_callback=self._on_table2_edit,
             editable_columns=editable_cols_table2
         )
+        
+        
+    def generate_report(self):
+        
+        
+        wo_widget = self.filter_manager.widgets.get('LabReportingBatchID')
+        
+        if not wo_widget:
+            
+            return
+        
+        wo_value = wo_widget.get()
+        
+        if not wo_value:
+            
+            self.update_status("Error: Please select a work order first", error=True)
+            
+        
+        self.update_status(f"Generating report for wo {wo_value}")
+        
+        
+        threading.Thread(
+            
+            target=self._generate_reporting_worker,
+            args=(int(wo_value), ),
+            daemon=True
+            
+        ).start()
+    
+    
+    def _send_batch_to_server(self, batch_id):
+        
+        import requests
+        import webbrowser
+        
+        try:
+            
+            
+            response = requests.post(
+                
+                'http://localhost:5000/api/generate-report/',
+                json={'batch_id': batch_id},
+                timeout=10
+                
+            )
+            
+            if response.status_code == 200:
+                
+                self.after(0, lambda: self.update_status(
+                    
+                    
+                    f"Report ready. Opening in browser..."
+                    
+                ))
+                
+                import time
+                time.sleep(1.5)
+                webbrowser.open('http://localhost:5173/test')
+                
+                self.after(1000, lambda: self.update_status(
+                    
+                    f"Report opened in browser for wo {batch_id}"
+                    
+                ))
+            
+            else:
+                
+                error_msg = response.json().get('error', 'Unknown error')
+                self.after(0, lambda: self.update_status(
+                    
+                    f"Error sending batch to server: {error_msg}", error=True
+                    
+                    
+                ))
+        
+        except requests.exceptions.ConnectionError:
+            
+            self.after(0, lambda: self.update_status(
+                
+                
+                "Error: Flask server is not running. Please start the server and try again.", error=True
+                
+            ))
+        
+        except Exception as e:
+            
+            self.after(0, lambda: self.update_status(
+                
+                
+                f"Error: {e}", error=True
+                
+            ))
+                
+                
+        
+        
+    def _generate_reporting_worker(self, wo):
+        
+        try:
+            
+            self._send_batch_to_server(wo)
+            
+        
+        except Exception as ex:
+            
+            self.after(0, "Error generating report")
+    
+    
+            
+            
+            
+            
+                
+        
         
     
     def _get_selected_wo_and_sample(self):

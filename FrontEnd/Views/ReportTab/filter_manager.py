@@ -315,6 +315,18 @@ class FilterManager:
         )
         self.widgets['add_test_btn'].grid(row=5, column=col, padx=5, pady=(0, 5), sticky=tk.EW)
         col += 1
+        
+        
+        ttk.Label(parent, text="").grid(row=4, column=col, padx=5, pady=(5, 0), sticky=tk.EW)
+        self.widgets['reporting_btn'] = ttk.Button(
+            parent, text="Report", 
+            command=self._call_parent_reporting, 
+            width=10, cursor="hand2"
+        )
+        self.widgets['reporting_btn'].grid(row=5, column=col, padx=5, pady=(0, 5), sticky=tk.EW)
+        col += 1
+        
+        
 
 
 
@@ -342,6 +354,20 @@ class FilterManager:
         self.widgets['LabSampleID'].bind('<<ComboboxSelected>>', self.on_sample_id_selected)
         self.widgets['analyte_name'].bind('<<ComboboxSelected>>', self.on_analyte_name_selected)
         self.widgets['analyte_group'].bind('<<ComboboxSelected>>', self.on_analyte_group_selected)
+        
+    
+    def _call_parent_reporting(self):
+        
+        if hasattr(self.parent, 'generate_report'):
+            
+            self.parent.generate_report()
+        
+        else:
+            
+            if hasattr(self, 'status_callback'):
+                
+                self.status_callback("Error: ReportTab doesn't have generate_report method", error=True)
+    
     
     
     def _create_qc_menu(self, parent):
