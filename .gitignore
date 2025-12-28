@@ -62,8 +62,6 @@ database.local.ini
 # =================================================================
 # REPORTES Y ARCHIVOS GENERADOS
 # =================================================================
-Reports/Generated/
-reports/
 *.xlsx
 *.pdf
 *.docx
