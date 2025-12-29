@@ -382,6 +382,7 @@ class FilterManager:
             ("Create LCS/LCSD Pair", self._call_parent_create_lcs),
             ("-", None),
             ("Create Matrix Spike (MS/MSD)", self._call_parent_create_ms),
+            ("Export Adapt", self._call_parent_adapt)    
         ]
         
         for label, cmd in qc_options:
@@ -392,98 +393,162 @@ class FilterManager:
         
         # Configurar el botón para mostrar el menú
         self.widgets['qc_menu_btn'].configure(command=lambda: self.qc_menu.post(
+            
             self.widgets['qc_menu_btn'].winfo_rootx(),
+            
             self.widgets['qc_menu_btn'].winfo_rooty() + self.widgets['qc_menu_btn'].winfo_height()
+            
         ))
 
 
     def _call_parent_create_mb(self):
+        
         """Llama al método create_method_blank del ReportTab"""
+        
         if hasattr(self.parent, 'create_method_blank'):
+            
             self.parent.create_method_blank()
+            
         else:
+            
             print("Error: ReportTab doesn't have create_method_blank method")
 
 
     def _call_parent_create_lcs(self):
+        
         """Llama al método create_lcs_pair del ReportTab"""
+        
         if hasattr(self.parent, 'create_lcs_pair'):
+            
             self.parent.create_lcs_pair()
+            
         else:
+            
             print("Error: ReportTab doesn't have create_lcs_pair method")
 
 
     def _call_parent_create_ms(self):
+        
         """Llama al método create_matrix_spike_pair del ReportTab"""
+        
         if hasattr(self.parent, 'create_matrix_spike_pair'):
+            
             self.parent.create_matrix_spike_pair()
+            
         else:
+            
             print("Error: ReportTab doesn't have create_matrix_spike_pair method")
     
     def add_sample(self):
+        
         """Llama al método add_new_sample del ReportTab"""
+        
         if hasattr(self.parent, 'add_new_sample'):
+            
             self.parent.add_new_sample()
+            
         else:
+            
             print("Error: ReportTab doesn't have add_new_sample method")
 
 
     def add_sample_test(self):
+        
         """Llama al método add_new_sample_test del ReportTab"""
+        
         if hasattr(self.parent, 'add_new_sample_test'):
+            
             self.parent.add_new_sample_test()
+            
         else:
+            
             print("Error: ReportTab doesn't have add_new_sample_test method")
+            
+
+    def _call_parent_adapt(self):
+        
+        if hasattr(self.parent, 'generate_adapt'):
+            
+            self.parent.generate_adapt()
+            
+        else:
+            
+            print("Error: ReportTab doesn´t have generate_adapt method")
 
     def load_work_orders(self):
 
         def load():
+            
             try:
                 self.selecte_initial_data_instance.load_connection()
 
                 self.work_orders = tuple_to_readable(
+                    
                     self.selecte_initial_data_instance.select_work_orders()
                 )
 
 
                 if self.work_orders:
+                    
                     self.latest_work_order = self.work_orders[0]
 
             except Exception as e:
+                
                 import traceback
+                
                 traceback.print_exc()
 
             finally:
+                
                 try:
+                    
                     self.selecte_initial_data_instance.close_connection()
+                    
                 except Exception:
+                    
                     pass
 
-            print("=== [7] Llamando a _on_work_orders_loaded ===")
             self.parent.after(0, self._on_work_orders_loaded)
 
         thread = threading.Thread(target=load, daemon=True)
+        
         thread.start()
-        print("=== [8] Thread creado y lanzado ===")
+
 
     def _on_work_orders_loaded(self):
+        
         if self.latest_work_order:
+            
             self.initialize_with_latest_wo()
 
     def load_data_by_wo(self, wo):
+        
         try:
+            
             self.select_data_by_wo_instance.load_connection()
+            
             self.filters_data = data_formatter(
+                
                 self.select_data_by_wo_instance.select_login_data(wo),
+                
                 INITIAL_DATA_FILTERS
+                
             )
+            
         except Exception as ex:
+            
             print(f"Error loading data for the wo {wo}, \nError info: {ex}")
+            
             self.filters_data = None
+            
         finally:
+            
             try:
+                
                 self.select_data_by_wo_instance.close_connection()
+                
             except Exception:
+                
                 pass
 
     def load_data_by_wo_async(self, wo):

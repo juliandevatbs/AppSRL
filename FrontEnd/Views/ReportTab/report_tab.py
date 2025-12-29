@@ -12,6 +12,7 @@ from BackEnd.Database.Queries.Insert.QualityControls.InsertQualityControl import
 from BackEnd.Database.Queries.Select.SelectInitialData import SelectInitialData
 from BackEnd.Database.Queries.Updates.UpdateSample import UpdateSample
 from BackEnd.Database.Queries.Updates.UpdateSampleTest import UpdateSampleTest
+from BackEnd.Processes.Adapt.generate_adapt_export import GenerateAdaptExport
 from BackEnd.Processes.DataFormatters.data_formatter import data_formatter
 from FrontEnd.Views.ReportTab.EditableTreeView import EditableTreeview
 from FrontEnd.Views.ReportTab.table_manager import TableManager
@@ -182,6 +183,77 @@ class ReportTab(ttk.Frame):
             editable_columns=editable_cols_table2
         )
         
+    def _generate_adapt_worker(self, wo, project_number, project_name, date_collected, collection_agency):
+        
+        
+        try:
+            
+            instance = GenerateAdaptExport(wo, project_number, project_name, date_collected, collection_agency)   
+            
+            data = instance.call_adapt_data() 
+            
+            export = instance.export_to_excel()
+            
+            if data and export:
+                
+                
+                self.after(0, lambda: self.update_status(
+                    
+                    f"Adapt export generated for WO {wo}"
+                    
+                ))
+            
+            else:
+                
+                self.after(0, lambda: self.update_status(
+                    
+                    "Error generating adapt export", error=True
+                    
+                ))
+                
+        except Exception as e:
+            
+            print(f"Error {e}")
+            
+            self.after(0, lambda: self.update_status(
+                
+                f"Error: exporting adapt", error=True
+                
+            ))
+        
+        
+        
+    # Function to call adapt process
+    def generate_adapt(self):
+        
+        wo_widget = self.filter_manager.widgets.get('LabReportingBatchID')
+        project_name = self.filter_manager.widgets.get('ProjectName')
+        date_collected = self.filter_manager.widgets.get('LabReceiptDate')
+        
+        if not wo_widget and not project_name and not date_collected:
+            
+            return
+        
+        wo_value = wo_widget.get()
+        project_name_value = project_name.get()
+        date_collected_value = date_collected.get()
+        
+        
+        if not wo_value:
+            
+            self.update_status("Error: Please select a work order first", error=True)
+            
+        
+        self.update_status(f"Generating adapt for wo {wo_value}")
+        
+        threading.Thread(
+            
+            target=self._generate_adapt_worker,
+            args=(int(wo_value), 0, project_name_value, date_collected_value, '', ),
+            daemon=True
+            
+        ).start()
+        
         
     def generate_report(self):
         
@@ -199,7 +271,7 @@ class ReportTab(ttk.Frame):
             self.update_status("Error: Please select a work order first", error=True)
             
         
-        self.update_status(f"Generating report for wo {wo_value}")
+        self.update_status(f"Generating adapt for wo {wo_value}")
         
         
         threading.Thread(

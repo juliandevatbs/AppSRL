@@ -77,7 +77,7 @@ class Main_Gui:
         self.setup_header()
         
         
-        # Tabs (Report e import )
+        # Tabs (Report e import)
         self.notebook = ttk.Notebook(self.main_frame, style="Custom.TNotebook")
         self.notebook.pack(fill=tk.BOTH, expand=True, padx=10, pady=(0, 5))
         
