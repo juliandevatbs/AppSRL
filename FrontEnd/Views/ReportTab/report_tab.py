@@ -9,7 +9,9 @@ from BackEnd.Config.fields import INITIAL_DATA_FILTERS, INITIAL_DATA_SAMPLE_TABL
 from BackEnd.Database.Queries.Insert.InsertSample import InsertSample
 from BackEnd.Database.Queries.Insert.InsertSampleTest import InsertSampleTest
 from BackEnd.Database.Queries.Insert.QualityControls.InsertQualityControl import InsertQualityControl
+from BackEnd.Database.Queries.Insert.TestsGroups.insert_sample_tests_from_group import InsertSampleTestsFromGroup
 from BackEnd.Database.Queries.Select.SelectInitialData import SelectInitialData
+from BackEnd.Database.Queries.Select.TestsGroups.select_tests_by_group import SelectTestsByGroup
 from BackEnd.Database.Queries.Updates.UpdateSample import UpdateSample
 from BackEnd.Database.Queries.Updates.UpdateSampleTest import UpdateSampleTest
 from BackEnd.Processes.Adapt.generate_adapt_export import GenerateAdaptExport
@@ -55,6 +57,9 @@ class ReportTab(ttk.Frame):
         self.insert_sample =  InsertSample()
         self.insert_sample_test = InsertSampleTest()
         self.insert_qc = InsertQualityControl()
+        
+        self.select_tests_by_group = SelectTestsByGroup()
+        self.insert_tests_from_group = InsertSampleTestsFromGroup()
     
 
     def _setup_ui(self):
@@ -182,6 +187,120 @@ class ReportTab(ttk.Frame):
             on_edit_callback=self._on_table2_edit,
             editable_columns=editable_cols_table2
         )
+
+
+    def add_tests_from_group(self):
+        """
+        Crea múltiples Sample Tests basándose en un Test Group seleccionado
+        """
+        # Obtener Work Order
+        work_order = self.filter_manager.widgets.get('LabReportingBatchID')
+        if not work_order:
+            self.update_status("Error: No Work Order selected", error=True)
+            return
+        
+        wo_value = work_order.get().strip()
+        if not wo_value:
+            self.update_status("Error: Please select a Work Order first", error=True)
+            return
+        
+        try:
+            wo_int = int(wo_value)
+        except ValueError:
+            self.update_status("Error: Invalid Work Order", error=True)
+            return
+        
+        # Obtener LabSampleID
+        lab_sample_widget = self.filter_manager.widgets.get('LabSampleID')
+        if not lab_sample_widget:
+            self.update_status("Error: No LabSampleID widget found", error=True)
+            return
+        
+        lab_sample_value = lab_sample_widget.get().strip()
+        if not lab_sample_value or lab_sample_value == 'All':
+            self.update_status("Error: Please select a specific LabSampleID (not 'All')", error=True)
+            return
+        
+        # Obtener Test Group seleccionado
+        test_group_widget = self.filter_manager.widgets.get('test_group_selector')
+        if not test_group_widget:
+            self.update_status("Error: No Test Group selector found", error=True)
+            return
+        
+        test_group_value = test_group_widget.get().strip()
+        if not test_group_value:
+            self.update_status("Error: Please select a Test Group first", error=True)
+            return
+        
+        self.update_status(f"Creating tests from group '{test_group_value}' for {lab_sample_value}...")
+        
+        def worker():
+            try:
+                # 1. Obtener los analitos del Test Group
+                self.select_tests_by_group.load_connection()
+                test_group_data = self.select_tests_by_group.get_tests_by_group(test_group_value)
+                self.select_tests_by_group.close_connection()
+                
+                if not test_group_data:
+                    self.after(0, lambda: self.update_status(
+                        f"Error: No tests found for group '{test_group_value}'", error=True
+                    ))
+                    return
+                
+                # 2. Insertar los Sample Tests
+                self.insert_tests_from_group.load_connection()
+                inserted_count = self.insert_tests_from_group.insert_tests_from_group(
+                    wo_int, 
+                    lab_sample_value, 
+                    test_group_data
+                )
+                self.insert_tests_from_group.close_connection()
+                
+                if inserted_count > 0:
+                    self.after(0, lambda count=inserted_count: self._on_tests_from_group_created(
+                        count, test_group_value, lab_sample_value
+                    ))
+                else:
+                    self.after(0, lambda: self.update_status(
+                        "Error creating tests from group", error=True
+                    ))
+                    
+            except Exception as e:
+                print(f"Error in add_tests_from_group worker: {e}")
+                import traceback
+                traceback.print_exc()
+                error_msg = str(e)
+                self.after(0, lambda msg=error_msg: self.update_status(f"Error: {msg}", error=True))
+        
+        thread = threading.Thread(target=worker, daemon=True)
+        thread.start()
+
+
+    def _on_tests_from_group_created(self, count, test_group_name, lab_sample_id):
+        """
+        Callback cuando se crean los tests desde un grupo
+        
+        Args:
+            count: Número de tests creados
+            test_group_name: Nombre del Test Group
+            lab_sample_id: LabSampleID para el cual se crearon los tests
+        """
+        self.update_status(
+            f"✓ Created {count} tests from '{test_group_name}' for {lab_sample_id}. Reloading data..."
+        )
+        
+        # Recargar analitos
+        work_order = self.filter_manager.widgets.get('LabReportingBatchID')
+        if work_order:
+            wo_value = work_order.get().strip()
+            try:
+                wo_int = int(wo_value)
+                self.filter_manager.load_analytes_async(wo_int)
+            except ValueError:
+                pass
+        
+        # Recargar las tablas
+        self.after(500, self.load_table_data)
         
     def _generate_adapt_worker(self, wo, project_number, project_name, date_collected, collection_agency):
         

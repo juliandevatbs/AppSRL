@@ -9,6 +9,7 @@ from BackEnd.Database.Queries.Insert.InsertSampleTest import InsertSampleTest
 from BackEnd.Database.Queries.Insert.QualityControls.InsertQualityControl import InsertQualityControl
 from BackEnd.Database.Queries.Select.SelectDataByWo import SelectDataByWo
 from BackEnd.Database.Queries.Select.SelectInitialData import SelectInitialData
+from BackEnd.Database.Queries.Select.TestsGroups.select_tests_by_group import SelectTestsByGroup
 from BackEnd.Database.Queries.Select.select_analyte_names import select_analyte_names
 from BackEnd.Database.Queries.Select.select_analyte_groups import select_analyte_groups
 from BackEnd.Database.Queries.Filters.filter_queries import filter_queries
@@ -29,6 +30,7 @@ class FilterManager:
 
         self.select_data_by_wo_instance = SelectDataByWo()
         self.selecte_initial_data_instance = SelectInitialData()
+        self.select_tests_by_group = SelectTestsByGroup()
 
         self.filters_data = None
         self.work_orders = None
@@ -107,7 +109,7 @@ class FilterManager:
             
             except Exception as e:
                 
-                self.parent.after(0, lambda: self.status_callback(f"Error: {str(e)}" , True))
+                self.parent.after(0, lambda: self.status_callback(f"Error: " , True))
         
         threading.Thread(target=worker, daemon=True).start()
         
@@ -274,6 +276,11 @@ class FilterManager:
         self.widgets['analyte_group'].grid(row=5, column=col, padx=5, pady=(0, 5), sticky=tk.EW)
         col += 1
 
+        # NUEVO: Selector de Test Group para crear tests
+        ttk.Label(parent, text="Test Group:").grid(row=4, column=col, padx=5, pady=(5, 0), sticky=tk.EW)
+        self.widgets['test_group_selector'] = ttk.Combobox(parent, width=25, state="disabled")
+        self.widgets['test_group_selector'].grid(row=5, column=col, padx=5, pady=(0, 5), sticky=tk.EW)
+        col += 1
 
         ################################################################################################################
 
@@ -290,7 +297,7 @@ class FilterManager:
         # MENÚ DESPLEGABLE DE QC
         ttk.Label(parent, text="").grid(row=4, column=col, padx=5, pady=(5, 0), sticky=tk.EW)
         self.widgets['qc_menu_btn'] = ttk.Button(
-            parent, text="☰ Quality Controls", 
+            parent, text="Options", 
             cursor="hand2", 
             width=20
         )
@@ -308,12 +315,13 @@ class FilterManager:
         col += 1
 
         ttk.Label(parent, text="").grid(row=4, column=col, padx=5, pady=(5, 0), sticky=tk.EW)
-        self.widgets['add_test_btn'] = ttk.Button(
-            parent, text="Add Sample Test", 
-            command=self.add_sample_test, 
-            width=20, cursor="hand2"
+        self.widgets['add_tests_menu_btn'] = ttk.Button(
+            parent, text="Add Tests ▼", 
+            cursor="hand2", 
+            width=20
         )
-        self.widgets['add_test_btn'].grid(row=5, column=col, padx=5, pady=(0, 5), sticky=tk.EW)
+        self.widgets['add_tests_menu_btn'].grid(row=5, column=col, padx=5, pady=(0, 5), sticky=tk.EW)
+        self._create_add_tests_menu(parent)
         col += 1
         
         
@@ -347,7 +355,7 @@ class FilterManager:
         self.widgets['sample_tests_btn'] = ttk.Button(parent, text="Add Sample tests", command=self.view_data, width=12)
         self.widgets['sample_tests_btn'].grid(row=5, column=col, padx=5, pady=(0, 5), sticky=tk.EW)"""
 
-        for i in range(7):
+        for i in range(8):  # Aumentado para incluir la nueva columna
             parent.columnconfigure(i, weight=1, uniform="col")
 
         self.widgets['LabReportingBatchID'].bind('<<ComboboxSelected>>', self.on_work_order_selected)
@@ -398,6 +406,28 @@ class FilterManager:
             
             self.widgets['qc_menu_btn'].winfo_rooty() + self.widgets['qc_menu_btn'].winfo_height()
             
+        ))
+
+
+    def _create_add_tests_menu(self, parent):
+        """Crea el menú desplegable para agregar tests"""
+        import tkinter.font as tkFont
+        
+        self.add_tests_menu = tk.Menu(parent, tearoff=0, font=tkFont.Font(size=9))
+        
+        # Opciones del menú
+        test_options = [
+            ("Add Single Test", self.add_sample_test),
+            ("Add Tests from Group", self.add_tests_from_group)
+        ]
+        
+        for label, cmd in test_options:
+            self.add_tests_menu.add_command(label=label, command=cmd)
+        
+        # Configurar el botón para mostrar el menú
+        self.widgets['add_tests_menu_btn'].configure(command=lambda: self.add_tests_menu.post(
+            self.widgets['add_tests_menu_btn'].winfo_rootx(),
+            self.widgets['add_tests_menu_btn'].winfo_rooty() + self.widgets['add_tests_menu_btn'].winfo_height()
         ))
 
 
@@ -463,6 +493,18 @@ class FilterManager:
         else:
             
             print("Error: ReportTab doesn't have add_new_sample_test method")
+    
+    
+    def add_tests_from_group(self):
+        """NUEVO: Llama al método add_tests_from_group del ReportTab"""
+        
+        if hasattr(self.parent, 'add_tests_from_group'):
+            
+            self.parent.add_tests_from_group()
+            
+        else:
+            
+            print("Error: ReportTab doesn't have add_tests_from_group method")
             
 
     def _call_parent_adapt(self):
@@ -575,6 +617,7 @@ class FilterManager:
             self.set_initial_data(self.filters_data)
             self.status_callback(f"Loaded latest work order: {wo}")
         self.load_analytes_async(wo)
+        self.load_test_groups_async()  # NUEVO: Cargar test groups disponibles
         if self.on_filters_ready_callback:
             try:
                 self.on_filters_ready_callback()
@@ -598,6 +641,56 @@ class FilterManager:
                 self.parent.after(0, self.status_callback, f"Error loading analytes: {str(ex)}", True)
         thread = threading.Thread(target=load_data, daemon=True)
         thread.start()
+    
+    def load_test_groups_async(self):
+        """NUEVO: Cargar grupos de tests disponibles"""
+        print("=== INICIANDO CARGA DE TEST GROUPS ===")
+        
+        def load_data():
+            try:
+                print("1. Intentando conectar a la base de datos...")
+                self.select_tests_by_group.load_connection()
+                print("2. Conexión establecida, obteniendo test groups...")
+                
+                test_groups = self.select_tests_by_group.get_available_test_groups()
+                
+                print(f"3. Test groups obtenidos: {len(test_groups) if test_groups else 0}")
+                print(f"4. Test groups data: {test_groups}")
+                
+                self.parent.after(0, self._update_test_groups, test_groups)
+                
+            except Exception as ex:
+                print(f"ERROR CARGANDO TEST GROUPS: {ex}")
+                import traceback
+                traceback.print_exc()
+            finally:
+                try:
+                    self.select_tests_by_group.close_connection()
+                    print("5. Conexión cerrada")
+                except:
+                    pass
+        
+        thread = threading.Thread(target=load_data, daemon=True)
+        thread.start()
+    
+    def _update_test_groups(self, test_groups):
+        """NUEVO: Actualizar el dropdown de test groups"""
+        print(f"=== ACTUALIZANDO DROPDOWN DE TEST GROUPS ===")
+        print(f"Test groups recibidos: {test_groups}")
+        print(f"'test_group_selector' en widgets: {'test_group_selector' in self.widgets}")
+        
+        if test_groups and 'test_group_selector' in self.widgets:
+            print(f"Asignando {len(test_groups)} test groups al dropdown")
+            self.widgets['test_group_selector']['values'] = test_groups
+            self.widgets['test_group_selector'].config(state='readonly')
+            self.status_callback("Test groups loaded")
+            print("Dropdown actualizado correctamente")
+        else:
+            print("NO se actualizó el dropdown")
+            if not test_groups:
+                print("  Razón: test_groups está vacío o None")
+            if 'test_group_selector' not in self.widgets:
+                print("  Razón: widget 'test_group_selector' no existe en self.widgets")
 
     def update_filter_widgets(self, analyte_names, analyte_groups, sample_ids):
 
@@ -694,6 +787,7 @@ class FilterManager:
                 print("ERROR LOADING DATA, NO DATA SELECTED")
 
             self.load_analytes_async(selected_wo)
+            self.load_test_groups_async()  # NUEVO: Recargar test groups
 
         if self.view_data_callback:
 
